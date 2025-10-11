@@ -1,0 +1,6 @@
+add device
+list device
+update device
+delete device
+
+receive latlong

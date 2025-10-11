@@ -1,0 +1,55 @@
+services:
+  php:
+    build:
+      context: ./build/php
+      dockerfile: Dockerfile
+    container_name: tracker_php
+    volumes:
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./src:/var/www/html"
+    restart: unless-stopped
+    depends_on:
+      - mysql
+  nginx:
+    build:
+      context: ./build/nginx
+      dockerfile: Dockerfile
+    container_name: tracker_nginx
+    volumes:
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "./src:/var/www/html"
+    ports:
+      - "8031:80"
+    restart: unless-stopped
+    depends_on:
+      - php
+  mysql:
+    image: mysql:8.0
+    container_name: tracker_mysql
+    ports:
+      - "8030:3306"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tracker
+      MYSQL_USER: tracker
+      MYSQL_PASSWORD: trackerpassword
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: tracker_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "8032:80"
+    depends_on:
+      - mysql
