@@ -1,0 +1,139 @@
+﻿Build1=Default,com.vehicle.tracker
+File1=account.bal
+File10=otp.bal
+File11=rentals.bal
+File12=reports.bal
+File13=Roboto-Bold.ttf
+File14=Roboto-Regular.ttf
+File15=sidebar.bal
+File16=sign_up.bal
+File17=vehicles.bal
+File2=customers.bal
+File3=dashboard.bal
+File4=forgot_password.bal
+File5=login.bal
+File6=map.bal
+File7=menu.bal
+File8=menu36.png
+File9=new_password.bal
+FileGroup1=Default Group
+FileGroup10=Default Group
+FileGroup11=Default Group
+FileGroup12=Default Group
+FileGroup13=New Group
+FileGroup14=New Group
+FileGroup15=Default Group
+FileGroup16=Default Group
+FileGroup17=Default Group
+FileGroup2=Default Group
+FileGroup3=Default Group
+FileGroup4=Default Group
+FileGroup5=Default Group
+FileGroup6=Default Group
+FileGroup7=Default Group
+FileGroup8=Default Group
+FileGroup9=Default Group
+Group=Default Group
+Library1=as_textfieldadvanced
+Library2=b4xdrawer
+Library3=b4xpages
+Library4=core
+Library5=googlemaps
+Library6=googlemapsextras
+Library7=jmqtt
+Library8=xcustomlistview
+Library9=asviewpager
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="31"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~~\n~'CreateResourceFromFile(Macro, Themes.LightTheme)~\n~~\n~SetApplicationAttribute(android:theme, "@style/LightTheme")~\n~CreateResource(values, colors.xml,~\n~<resources>~\n~    <color name="actionbar">#FF1976D2</color>~\n~   <color name="statusbar">#FF2196F3</color>~\n~   <color name="textColorPrimary">#FFFFFFFF</color>~\n~   <color name="navigationBar">#ff006db3</color>~\n~</resources>~\n~)~\n~CreateResource(values, theme.xml,~\n~<resources>~\n~    <style name="LightTheme" parent="@android:style/Theme.Material.Light">~\n~        <item name="android:colorPrimary">@color/actionbar</item>~\n~        <item name="android:colorPrimaryDark">@color/statusbar</item>~\n~        <item name="android:textColorPrimary">@color/textColorPrimary</item>~\n~        <item name="android:navigationBarColor">@color/navigationBar</item>~\n~    </style>~\n~</resources>~\n~)~\n~~\n~'End of default text.~\n~SetApplicationAttribute(android:usesCleartextTraffic, true)~\n~AddPermission(android.permission.INTERNET)~\n~AddPermission(android.permission.ACCESS_FINE_LOCATION)~\n~~\n~'Firebase and Google Play Services~\n~CreateResourceFromFile(Macro, FirebaseAnalytics.GooglePlayBase)~\n~~\n~'Google Maps API Key~\n~AddApplicationText(~\n~<meta-data~\n~  android:name="com.google.android.geo.API_KEY"~\n~  android:value="AIzaSyB-ZxwlAnqV7PQDBYCF7YG4LugJCHiiy7E"/>~\n~)~\n~~\n~'HTTP Legacy Support~\n~AddApplicationText(~\n~<uses-library~\n~      android:name="org.apache.http.legacy"~\n~      android:required="false" />~\n~)
+Module1=AccountPane
+Module10=NewPasswordPage
+Module11=RentalPane
+Module12=ReportPane
+Module13=SidebarCls
+Module14=SignUpPage
+Module15=Starter
+Module16=VehiclePane
+Module17=VerificationPage
+Module2=|relative|..\B4XMainPage
+Module3=Config
+Module4=CustomerPane
+Module5=DashboardPane
+Module6=ForgotPasswordPage
+Module7=LoginPage
+Module8=MapPage
+Module9=MenuPage
+NumberOfFiles=17
+NumberOfLibraries=9
+NumberOfModules=17
+Version=13.4
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: Tracker
+	#VersionCode: 1
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: portrait
+	#CanInstallToExternalStorage: False
+	
+	#AdditionalJar: com.google.android.gms:play-services-vision
+	
+	#CustomBuildAction: 1, c:\windows\system32\attrib.exe, +r res\*.* /s
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: False
+	#IncludeTitle: True
+#End Region
+
+#BridgeLogger: True
+
+Sub Process_Globals
+	Public ActionBarHomeClicked As Boolean
+End Sub
+
+Sub Globals
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	Dim pm As B4XPagesManager
+	pm.Initialize(Activity)
+End Sub
+
+'Template version: B4A-1.01
+#Region Delegates
+
+Sub Activity_ActionBarHomeClick
+	ActionBarHomeClicked = True
+	B4XPages.Delegate.Activity_ActionBarHomeClick
+	ActionBarHomeClicked = False
+End Sub
+
+Sub Activity_KeyPress (KeyCode As Int) As Boolean
+	Return B4XPages.Delegate.Activity_KeyPress(KeyCode)
+End Sub
+
+Sub Activity_Resume
+	B4XPages.Delegate.Activity_Resume
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+	B4XPages.Delegate.Activity_Pause
+End Sub
+
+Sub Activity_PermissionResult (Permission As String, Result As Boolean)
+	B4XPages.Delegate.Activity_PermissionResult(Permission, Result)
+End Sub
+
+Sub Create_Menu (Menu As Object)
+	B4XPages.Delegate.Create_Menu(Menu)
+End Sub
+
+#if Java
+public boolean _onCreateOptionsMenu(android.view.Menu menu) {
+	 processBA.raiseEvent(null, "create_menu", menu);
+	 return true;
+	
+}
+#End If
+#End Region
+
+'Program code should go into B4XMainPage and other pages.
