@@ -31,4 +31,18 @@ class Rental extends Model
     {
         return $this->belongsTo(\App\Models\Vehicle::class, 'vehicle_id');
     }
+
+    /**
+     * Scope a query to only include active rentals.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActive($query)
+    {
+        return $query->where(function ($query) {
+            $query->whereNull('ended_at')
+                ->orWhere('ended_at', '>', now());
+        });
+    }
 }

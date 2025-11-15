@@ -63,10 +63,7 @@ class RentalController extends Controller
 
         // Check if vehicle already has an active rental
         $activeRental = Rental::where('vehicle_id', $request->vehicle_id)
-            ->where(function ($query) {
-                $query->whereNull('ended_at')
-                    ->orWhere('ended_at', '>', now());
-            })
+            ->active()
             ->first();
 
         if ($activeRental) {
