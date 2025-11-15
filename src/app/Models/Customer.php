@@ -43,9 +43,6 @@ class Customer extends Model
     public function active_rentals()
     {
         return $this->hasMany(Rental::class, 'customer_id')
-            ->where(function ($query) {
-                $query->whereNull('ended_at')
-                    ->orWhere('ended_at', '>', now());
-            });
+            ->active();
     }
 }
