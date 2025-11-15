@@ -10,10 +10,13 @@ use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\VehicleController;
 use App\Http\Controllers\Api\RentalController;
 use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\OtpController;
 
 Route::post('/register', [UserController::class, 'register']);
 
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::post('/password/update', [UserController::class, 'update_password']);
 
 Route::middleware('auth:sanctum')->group(function () 
 {
@@ -31,3 +34,7 @@ Route::middleware('auth:sanctum')->group(function ()
 });
 
 Route::get('/location', [LocationController::class, 'location']);
+
+Route::post('/otp', [OtpController::class, 'generate_otp']);
+
+Route::post('/otp/validate', [OtpController::class, 'validate']);

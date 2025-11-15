@@ -3,53 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Http\Request;
+use Ichtrojan\Otp\Otp;
+use App\Mail\OtpMail;
+use Illuminate\Support\Facades\Mail;
 
-class UserController extends Controller
+class OtpController extends Controller
 {
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(),
-        [
-            "name" => "required|string",
-            "email" => "required|string|email|unique:users",
-            "password" => "required|confirmed"
-        ]);
-
-        if ($validator->fails()) 
-        {
-            $errorMessage = $validator->errors()->first();
-            
-            $response = [
-                "status" => false,
-                "message" => $errorMessage
-            ];
-            
-            return response()->json($response, 400);
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        return response()->json([
-            "status" => true,
-            "message" => "User registered successfully",
-            "user" => $user
-        ]);
-    }
-    public function update_password(Request $request)
+    public function generate_otp(Request $request) 
     {
         $validator = Validator::make($request->all(),
         [
             "email" => "required|string|email|exists:users,email",
-            "old_password" => "required",
-            "password" => "required|confirmed"
         ]);
 
         if ($validator->fails()) 
@@ -63,23 +29,53 @@ class UserController extends Controller
             
             return response()->json($response, 400);
         }
-
-        $user = User::where("email", $request->email)->first();
-
-        if (!Hash::check($request->old_password, $user->password))
-        {
-            return response()->json([
-                "status" => false,
-                "message" => "Invalid credentials"
-            ]);
-        }
-
-        $user->password = Hash::make($request->password);
-        $user->save();
-
+        
+        $otp = (new Otp)->generate($request->email, 'numeric', env('OTP_LENGTH', 6), env('OTP_EXPIRATION', 10));
+        
+        Mail::to($request->email)->send(
+            new OtpMail(
+                otp: $otp->token,
+                minutes: env('OTP_EXPIRATION', 10)
+                )
+            );
+        
         return response()->json([
             "status" => true,
-            "message" => "Password updated successfully",
+            "message" => "OTP successfully sent to ".mask_email($request->email, 4),
+        ], 200);
+    }
+    public function validate(Request $request)
+    {
+        $validator = Validator::make($request->all(),
+        [
+            "email" => "required|string|email|exists:users,email",
+            "otp" => "required|string"
         ]);
+
+        if ($validator->fails()) 
+        {
+            $errorMessage = $validator->errors()->first();
+            
+            $response = [
+                "status" => false,
+                "message" => $errorMessage
+            ];
+            
+            return response()->json($response, 400);
+        }
+        
+        $otp = (new Otp)->validate($request->email, $request->otp);
+        
+        if (!$otp->status) {
+            return response()->json([
+                "status" => false,
+                "message" => $otp->message
+            ], 400);
+        }
+        
+        return response()->json([
+            "status" => true,
+            "message" => "OTP is valid"
+        ], 200);
     }
 }
