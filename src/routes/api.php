@@ -13,13 +13,13 @@ use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\OtpController;
 
 // Public routes with rate limiting
-Route::middleware(['throttle:10,1'])->group(function () {
+Route::middleware(['throttle:60,1'])->group(function () {
     Route::post('/register', [UserController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login'])->name('login');
 });
 
 // Password reset flow (public - uses OTP for security)
-Route::middleware(['throttle:5,10'])->group(function () {
+Route::middleware(['throttle:60,1'])->group(function () {
     Route::post('/otp', [OtpController::class, 'generateOtp']);
     Route::post('/otp/validate', [OtpController::class, 'validate']);
     Route::post('/password/reset', [UserController::class, 'resetPassword']);
