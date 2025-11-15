@@ -13,7 +13,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            "email" => "required",
+            "email" => "required|email",
             "password" => "required"
         ]);
  
@@ -36,7 +36,7 @@ class AuthController extends Controller
             return response()->json([
                 "status" => false,
                 "message" => "Invalid credentials"
-            ]);
+            ], 401);
         }
  
         $token = $user->createToken("auth_token")->plainTextToken;

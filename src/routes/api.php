@@ -12,29 +12,39 @@ use App\Http\Controllers\Api\RentalController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\OtpController;
 
-Route::post('/register', [UserController::class, 'register']);
+// Public routes with rate limiting
+Route::middleware(['throttle:10,1'])->group(function () {
+    Route::post('/register', [UserController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
-Route::post('/login', [AuthController::class, 'login']);
+// Password reset flow (public - uses OTP for security)
+Route::middleware(['throttle:5,10'])->group(function () {
+    Route::post('/otp', [OtpController::class, 'generate_otp']);
+    Route::post('/otp/validate', [OtpController::class, 'validate']);
+    Route::post('/password/reset', [UserController::class, 'reset_password']);
+});
 
-Route::post('/password/update', [UserController::class, 'update_password']);
+// Location endpoint (public - for GPS devices)
+Route::get('/location', [LocationController::class, 'location']);
 
-Route::middleware('auth:sanctum')->group(function () 
+// Protected routes (require authentication)
+Route::middleware('auth:sanctum')->group(function ()
 {
     Route::get('/test', [TestController::class, 'index']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    // Password change for authenticated users
+    Route::post('/password/change', [UserController::class, 'change_password']);
+
+    // Resource routes
     Route::apiResource('devices', DeviceController::class);
-
     Route::apiResource('customers', CustomerController::class);
-
     Route::apiResource('vehicles', VehicleController::class);
-    
     Route::apiResource('rentals', RentalController::class);
+
+    // Rental start/end routes
+    Route::post('/rentals/{id}/start', [RentalController::class, 'start']);
+    Route::post('/rentals/{id}/end', [RentalController::class, 'end']);
 });
-
-Route::get('/location', [LocationController::class, 'location']);
-
-Route::post('/otp', [OtpController::class, 'generate_otp']);
-
-Route::post('/otp/validate', [OtpController::class, 'validate']);

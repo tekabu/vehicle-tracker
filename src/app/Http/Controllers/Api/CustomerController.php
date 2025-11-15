@@ -25,7 +25,7 @@ class CustomerController extends Controller
         $customers = $query->get();
         
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Customers retrieved successfully',
             'customers' => $customers
         ], 200);
@@ -69,17 +69,17 @@ class CustomerController extends Controller
      */
     public function show(string $id)
     {
-        $customer = customer::find($id);
+        $customer = Customer::find($id);
         
         if (!$customer) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'customer not found'
             ], 404);
         }
         
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'customer retrieved successfully',
             'customer' => $customer
         ], 200);

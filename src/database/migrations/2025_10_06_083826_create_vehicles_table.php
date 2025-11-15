@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('plate_no', 30)->unique();
             $table->string('car_type', 50);
-            $table->integer('device_id')->nullable();
+            $table->foreignId('device_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });
     }

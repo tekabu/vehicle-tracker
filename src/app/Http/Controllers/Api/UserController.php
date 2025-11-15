@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Ichtrojan\Otp\Otp;
 
 class UserController extends Controller
 {
@@ -14,9 +15,9 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(),
         [
-            "name" => "required|string",
-            "email" => "required|string|email|unique:users",
-            "password" => "required|confirmed"
+            "name" => "required|string|max:255",
+            "email" => "required|string|email|unique:users|max:255",
+            "password" => "required|confirmed|min:8"
         ]);
 
         if ($validator->fails()) 
@@ -43,43 +44,83 @@ class UserController extends Controller
             "user" => $user
         ]);
     }
-    public function update_password(Request $request)
+    /**
+     * Reset password using OTP (for forgot password flow)
+     */
+    public function reset_password(Request $request)
     {
-        $validator = Validator::make($request->all(),
-        [
+        $validator = Validator::make($request->all(), [
             "email" => "required|string|email|exists:users,email",
-            "old_password" => "required",
-            "password" => "required|confirmed"
+            "otp" => "required|string",
+            "password" => "required|confirmed|min:8"
         ]);
 
-        if ($validator->fails()) 
-        {
-            $errorMessage = $validator->errors()->first();
-            
-            $response = [
-                "status" => false,
-                "message" => $errorMessage
-            ];
-            
-            return response()->json($response, 400);
-        }
-
-        $user = User::where("email", $request->email)->first();
-
-        if (!Hash::check($request->old_password, $user->password))
-        {
+        if ($validator->fails()) {
             return response()->json([
                 "status" => false,
-                "message" => "Invalid credentials"
-            ]);
+                "message" => $validator->errors()->first()
+            ], 400);
+        }
+
+        // Validate OTP
+        $otpValidation = (new Otp)->validate($request->email, $request->otp);
+
+        if (!$otpValidation->status) {
+            return response()->json([
+                "status" => false,
+                "message" => "Invalid or expired OTP"
+            ], 401);
+        }
+
+        // OTP is valid - update password
+        $user = User::where("email", $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Invalidate all existing tokens (logout from all devices for security)
+        $user->tokens()->delete();
+
+        return response()->json([
+            "status" => true,
+            "message" => "Password reset successfully"
+        ], 200);
+    }
+
+    /**
+     * Change password for authenticated users (requires old password)
+     */
+    public function change_password(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "old_password" => "required",
+            "password" => "required|confirmed|min:8"
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                "status" => false,
+                "message" => $validator->errors()->first()
+            ], 400);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->old_password, $user->password)) {
+            return response()->json([
+                "status" => false,
+                "message" => "Old password is incorrect"
+            ], 401);
         }
 
         $user->password = Hash::make($request->password);
         $user->save();
 
+        // Invalidate all other tokens (keep current session)
+        $user->tokens()->where('id', '!=', $request->user()->currentAccessToken()->id)->delete();
+
         return response()->json([
             "status" => true,
-            "message" => "Password updated successfully",
-        ]);
+            "message" => "Password changed successfully"
+        ], 200);
     }
 }

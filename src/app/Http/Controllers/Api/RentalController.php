@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Rental;
+use App\Models\Customer;
+use App\Models\Vehicle;
 use Carbon\Carbon;
 
 class RentalController extends Controller
@@ -30,7 +32,7 @@ class RentalController extends Controller
         $rentals = $query->get();
         
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Rentals retrieved successfully',
             'rentals' => $rentals
         ], 200);
@@ -176,7 +178,7 @@ class RentalController extends Controller
 
         return response()->json([
             'status' => true,
-            'message' => 'Rental ended successfully',
+            'message' => 'Rental started successfully',
             'rental' => $rental
         ], 200);
     }

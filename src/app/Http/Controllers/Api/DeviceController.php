@@ -17,7 +17,7 @@ class DeviceController extends Controller
         $devices = Device::all();
         
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Devices retrieved successfully',
             'devices' => $devices
         ], 200);
@@ -63,13 +63,13 @@ class DeviceController extends Controller
         
         if (!$device) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Device not found'
             ], 404);
         }
-        
+
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Device retrieved successfully',
             'device' => $device
         ], 200);

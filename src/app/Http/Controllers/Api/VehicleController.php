@@ -14,12 +14,12 @@ class VehicleController extends Controller
      */
     public function index()
     {
-        $vechicles = Vehicle::all();
-        
+        $vehicles = Vehicle::all();
+
         return response()->json([
-            'success' => true,
-            'message' => 'Vechicles retrieved successfully',
-            'vechicles' => $vechicles
+            'status' => true,
+            'message' => 'Vehicles retrieved successfully',
+            'vehicles' => $vehicles
         ], 200);
     }
 
@@ -65,13 +65,13 @@ class VehicleController extends Controller
         
         if (!$vehicle) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Vehicle not found'
             ], 404);
         }
         
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Vehicle retrieved successfully',
             'vehicle' => $vehicle
         ], 200);
@@ -86,7 +86,7 @@ class VehicleController extends Controller
         
         if (!$vehicle) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Vehicle not found'
             ], 404);
         }
@@ -95,7 +95,7 @@ class VehicleController extends Controller
         [
             "plate_no" => "required|string|unique:vehicles,plate_no," . $id,
             "car_type" => "required|string",
-            "device_id" => "nullable|exists:devices,id|unique:vehicles,device_id",
+            "device_id" => "nullable|exists:devices,id|unique:vehicles,device_id," . $id,
         ]);
 
         if ($validator->fails()) 
@@ -128,7 +128,7 @@ class VehicleController extends Controller
         
         if (!$vehicle) {
             return response()->json([
-                'success' => false,
+                'status' => false,
                 'message' => 'Vehicle not found'
             ], 404);
         }
@@ -136,7 +136,7 @@ class VehicleController extends Controller
         $vehicle->delete();
         
         return response()->json([
-            'success' => true,
+            'status' => true,
             'message' => 'Vehicle deleted successfully',
             'vehicle' => $vehicle
         ], 200);
