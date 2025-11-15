@@ -61,9 +61,20 @@ class RentalController extends Controller
             return response()->json($response, 400);
         }
 
-        $customer = Customer::find($validator->validated('customer_id'));
-        
-        $vehicle = Vehicle::find($validator->validated('vehicle_id'));
+        // Check if vehicle already has an active rental
+        $activeRental = Rental::where('vehicle_id', $request->vehicle_id)
+            ->where(function ($query) {
+                $query->whereNull('ended_at')
+                    ->orWhere('ended_at', '>', now());
+            })
+            ->first();
+
+        if ($activeRental) {
+            return response()->json([
+                "status" => false,
+                "message" => "This vehicle is already rented and not available"
+            ], 409); // 409 Conflict
+        }
 
         $rental = Rental::create($validator->validated());
 
@@ -71,7 +82,7 @@ class RentalController extends Controller
             "status" => true,
             "message" => "Rental created successfully",
             "rental" => $rental
-        ], 200);
+        ], 201);
     }
 
     /**

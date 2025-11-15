@@ -35,10 +35,10 @@ services:
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: tracker
-      MYSQL_USER: tracker
-      MYSQL_PASSWORD: trackerpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-tracker}
+      MYSQL_USER: ${MYSQL_USER:-tracker}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-trackerpassword}
     restart: unless-stopped
 
   phpmyadmin:
@@ -48,7 +48,7 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
     ports:
       - "8032:80"
     depends_on:
