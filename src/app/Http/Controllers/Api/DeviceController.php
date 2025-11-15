@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Device;
+use App\Http\Requests\StoreDeviceRequest;
+use App\Http\Requests\UpdateDeviceRequest;
 
 class DeviceController extends Controller
 {
@@ -26,26 +27,9 @@ class DeviceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreDeviceRequest $request)
     {
-        $validator = Validator::make($request->all(),
-        [
-            "tag" => "required|string|unique:devices",
-        ]);
-
-        if ($validator->fails()) 
-        {
-            $errorMessage = $validator->errors()->first();
-            
-            $response = [
-                "status" => false,
-                "message" => $errorMessage
-            ];
-            
-            return response()->json($response, 400);
-        }
-
-        $device = Device::create($validator->validated());
+        $device = Device::create($request->validated());
 
         return response()->json([
             "status" => true,
@@ -78,10 +62,10 @@ class DeviceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateDeviceRequest $request, string $id)
     {
         $device = Device::find($id);
-        
+
         if (!$device) {
             return response()->json([
                 'status' => false,
@@ -89,18 +73,7 @@ class DeviceController extends Controller
             ], 404);
         }
 
-        $validator = Validator::make($request->all(), [
-            'tag' => 'required|string|unique:devices,tag,' . $id,
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first()
-            ], 400);
-        }
-
-        $device->update($validator->validated());
+        $device->update($request->validated());
 
         return response()->json([
             'status' => true,

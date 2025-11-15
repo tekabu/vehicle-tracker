@@ -4,34 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\PasswordResetToken;
+use App\Http\Requests\RegisterUserRequest;
+use App\Http\Requests\ResetPasswordRequest;
+use App\Http\Requests\ChangePasswordRequest;
 
 class UserController extends Controller
 {
-    public function register(Request $request)
+    public function register(RegisterUserRequest $request)
     {
-        $validator = Validator::make($request->all(),
-        [
-            "name" => "required|string|max:255",
-            "email" => "required|string|email|unique:users|max:255",
-            "password" => "required|confirmed|min:8"
-        ]);
-
-        if ($validator->fails()) 
-        {
-            $errorMessage = $validator->errors()->first();
-            
-            $response = [
-                "status" => false,
-                "message" => $errorMessage
-            ];
-            
-            return response()->json($response, 400);
-        }
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -52,21 +35,8 @@ class UserController extends Controller
      * 2. User validates OTP via /otp/validate - receives reset_token
      * 3. User submits reset_token + new password to this endpoint
      */
-    public function resetPassword(Request $request)
+    public function resetPassword(ResetPasswordRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            "email" => "required|string|email|exists:users,email",
-            "reset_token" => "required|string",
-            "password" => "required|confirmed|min:8"
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                "status" => false,
-                "message" => $validator->errors()->first()
-            ], 400);
-        }
-
         // Clean up expired tokens first
         PasswordResetToken::deleteExpired();
 
@@ -113,20 +83,8 @@ class UserController extends Controller
     /**
      * Change password for authenticated users (requires old password)
      */
-    public function changePassword(Request $request)
+    public function changePassword(ChangePasswordRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            "old_password" => "required",
-            "password" => "required|confirmed|min:8"
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                "status" => false,
-                "message" => $validator->errors()->first()
-            ], 400);
-        }
-
         $user = $request->user();
 
         if (!Hash::check($request->old_password, $user->password)) {

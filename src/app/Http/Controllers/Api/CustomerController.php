@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Customer;
+use App\Http\Requests\StoreCustomerRequest;
+use App\Http\Requests\UpdateCustomerRequest;
 
 class CustomerController extends Controller
 {
@@ -34,28 +35,9 @@ class CustomerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
-        $validator = Validator::make($request->all(),
-        [
-            "name" => "required|string",
-            "contact_no" => "required|string",
-            "address" => "required|string",
-        ]);
-
-        if ($validator->fails()) 
-        {
-            $errorMessage = $validator->errors()->first();
-            
-            $response = [
-                "status" => false,
-                "message" => $errorMessage
-            ];
-            
-            return response()->json($response, 400);
-        }
-
-        $customer = Customer::create($validator->validated());
+        $customer = Customer::create($request->validated());
 
         return response()->json([
             "status" => true,
@@ -88,10 +70,10 @@ class CustomerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateCustomerRequest $request, string $id)
     {
         $customer = Customer::find($id);
-        
+
         if (!$customer) {
             return response()->json([
                 'status' => false,
@@ -99,21 +81,7 @@ class CustomerController extends Controller
             ], 404);
         }
 
-        $validator = Validator::make($request->all(),
-        [
-            "name" => "required|string",
-            "contact_no" => "required|string",
-            "address" => "required|string",
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first()
-            ], 400);
-        }
-
-        $customer->update($validator->validated());
+        $customer->update($request->validated());
 
         return response()->json([
             'status' => true,

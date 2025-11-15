@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreRentalRequest extends FormRequest
+class UpdateDeviceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,8 +24,7 @@ class StoreRentalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "customer_id" => "required|string|exists:customers,id",
-            "vehicle_id" => "required|string|exists:vehicles,id"
+            "tag" => "required|string|unique:devices,tag," . $this->route('device') . "|max:100",
         ];
     }
 

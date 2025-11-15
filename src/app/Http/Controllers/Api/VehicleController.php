@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use App\Models\Vehicle;
+use App\Http\Requests\StoreVehicleRequest;
+use App\Http\Requests\UpdateVehicleRequest;
 
 class VehicleController extends Controller
 {
@@ -26,28 +27,9 @@ class VehicleController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreVehicleRequest $request)
     {
-        $validator = Validator::make($request->all(),
-        [
-            "plate_no" => "required|string|unique:vehicles",
-            "car_type" => "required|string",
-            "device_id" => "nullable|exists:devices,id|unique:vehicles,device_id",
-        ]);
-
-        if ($validator->fails()) 
-        {
-            $errorMessage = $validator->errors()->first();
-            
-            $response = [
-                "status" => false,
-                "message" => $errorMessage
-            ];
-            
-            return response()->json($response, 400);
-        }
-
-        $vehicle = Vehicle::create($validator->validated());
+        $vehicle = Vehicle::create($request->validated());
 
         return response()->json([
             "status" => true,
@@ -80,10 +62,10 @@ class VehicleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateVehicleRequest $request, string $id)
     {
         $vehicle = Vehicle::find($id);
-        
+
         if (!$vehicle) {
             return response()->json([
                 'status' => false,
@@ -91,26 +73,7 @@ class VehicleController extends Controller
             ], 404);
         }
 
-        $validator = Validator::make($request->all(),
-        [
-            "plate_no" => "required|string|unique:vehicles,plate_no," . $id,
-            "car_type" => "required|string",
-            "device_id" => "nullable|exists:devices,id|unique:vehicles,device_id," . $id,
-        ]);
-
-        if ($validator->fails()) 
-        {
-            $errorMessage = $validator->errors()->first();
-            
-            $response = [
-                "status" => false,
-                "message" => $errorMessage
-            ];
-            
-            return response()->json($response, 400);
-        }
-
-        $vehicle->update($validator->validated());
+        $vehicle->update($request->validated());
 
         return response()->json([
             "status" => true,

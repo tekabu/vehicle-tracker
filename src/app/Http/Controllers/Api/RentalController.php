@@ -4,10 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Rental;
 use App\Models\Customer;
 use App\Models\Vehicle;
+use App\Http\Requests\StoreRentalRequest;
+use App\Http\Requests\UpdateRentalRequest;
 use Carbon\Carbon;
 
 class RentalController extends Controller
@@ -41,26 +42,8 @@ class RentalController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreRentalRequest $request)
     {
-        $validator = Validator::make($request->all(),
-        [
-            "customer_id" => "required|string|exists:customers,id",
-            "vehicle_id" => "required|string|exists:vehicles,id"
-        ]);
-
-        if ($validator->fails()) 
-        {
-            $errorMessage = $validator->errors()->first();
-            
-            $response = [
-                "status" => false,
-                "message" => $errorMessage
-            ];
-            
-            return response()->json($response, 400);
-        }
-
         // Check if vehicle already has an active rental
         $activeRental = Rental::where('vehicle_id', $request->vehicle_id)
             ->active()
@@ -73,7 +56,7 @@ class RentalController extends Controller
             ], 409); // 409 Conflict
         }
 
-        $rental = Rental::create($validator->validated());
+        $rental = Rental::create($request->validated());
 
         return response()->json([
             "status" => true,
@@ -106,10 +89,10 @@ class RentalController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateRentalRequest $request, string $id)
     {
         $rental = Rental::find($id);
-        
+
         if (!$rental) {
             return response()->json([
                 'status' => false,
@@ -117,19 +100,7 @@ class RentalController extends Controller
             ], 404);
         }
 
-        $validator = Validator::make($request->all(), [
-            "customer_id" => "required|string|exists:customers,id",
-            "vehicle_id" => "required|string|exists:vehicles,id"
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => $validator->errors()->first()
-            ], 400);
-        }
-
-        $rental->update($validator->validated());
+        $rental->update($request->validated());
 
         return response()->json([
             'status' => true,
