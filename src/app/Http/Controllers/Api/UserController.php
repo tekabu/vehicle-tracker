@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use App\Models\User;
 use App\Models\PasswordResetToken;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use Ichtrojan\Otp\Otp;
+use App\Mail\OtpMail;
 
 class UserController extends Controller
 {
@@ -22,9 +25,20 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Generate and send OTP for email verification
+        $otp = (new Otp)->generate($request->email, 'numeric', env('OTP_LENGTH', 6), env('OTP_EXPIRATION', 10));
+
+        Mail::to($request->email)->send(
+            new OtpMail(
+                otp: $otp->token,
+                minutes: env('OTP_EXPIRATION', 10)
+            )
+        );
+
         return response()->json([
             "status" => true,
-            "message" => "User registered successfully",
+            "message" => "User registered successfully. Please verify your email.",
+            "action" => "email_verification",
             "user" => $user
         ]);
     }

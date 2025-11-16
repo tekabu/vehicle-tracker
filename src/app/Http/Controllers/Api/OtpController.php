@@ -9,6 +9,7 @@ use Ichtrojan\Otp\Otp;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Mail;
 use App\Models\PasswordResetToken;
+use App\Models\User;
 use Illuminate\Support\Str;
 
 class OtpController extends Controller
@@ -51,7 +52,8 @@ class OtpController extends Controller
         $validator = Validator::make($request->all(),
         [
             "email" => "required|string|email|exists:users,email",
-            "otp" => "required|string"
+            "otp" => "required|string",
+            "type" => "nullable|string|in:email_verification,password_reset"
         ]);
 
         if ($validator->fails())
@@ -79,7 +81,22 @@ class OtpController extends Controller
             ], 401);
         }
 
-        // OTP is valid - delete any existing reset tokens for this email
+        // Determine the type of OTP validation (default to password_reset for backward compatibility)
+        $type = $request->input('type', 'password_reset');
+
+        if ($type === 'email_verification') {
+            // Email verification - update user's email_verified_at
+            $user = User::where('email', $request->email)->first();
+            $user->email_verified_at = now();
+            $user->save();
+
+            return response()->json([
+                "status" => true,
+                "message" => "Email verified successfully. You can now login.",
+            ], 200);
+        }
+
+        // Password reset flow - OTP is valid - delete any existing reset tokens for this email
         PasswordResetToken::where('email', $request->email)->delete();
 
         // Generate a secure reset token (valid for 15 minutes)
