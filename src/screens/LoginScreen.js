@@ -7,43 +7,72 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import authService from '../services/authService';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    // Clear previous messages
+    setMessage({ type: '', text: '' });
+
     // Validation
     if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email');
+      setMessage({ type: 'error', text: 'Please enter your email' });
       return;
     }
 
     if (!validateEmail(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      setMessage({ type: 'error', text: 'Please enter a valid email address' });
       return;
     }
 
     if (!password.trim()) {
-      Alert.alert('Error', 'Please enter your password');
+      setMessage({ type: 'error', text: 'Please enter your password' });
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
-      return;
-    }
+    try {
+      setLoading(true);
+      const response = await authService.login({
+        email: email.trim(),
+        password: password,
+      });
 
-    // Login successful - navigate to home
-    navigation.navigate('Main');
+      // Login successful - response contains: message, user, token
+      setMessage({ type: 'success', text: response.message || 'Login successful' });
+
+      // Navigate after a short delay to show the success message
+      setTimeout(() => {
+        navigation.navigate('Main');
+      }, 1500);
+    } catch (error) {
+      // Handle different error scenarios
+      let errorMessage = 'Something went wrong. Please try again.';
+
+      if (error.status === 0) {
+        // Network error
+        errorMessage = 'Unable to connect to server. Please check your internet connection.';
+      } else if (error.message) {
+        // Server returned an error message
+        errorMessage = error.message;
+      }
+
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,6 +88,12 @@ export default function LoginScreen({ navigation }) {
         </View>
 
         <View style={styles.form}>
+          {message.text ? (
+            <View style={[styles.messageContainer, message.type === 'error' ? styles.errorMessage : styles.successMessage]}>
+              <Text style={styles.messageText}>{message.text}</Text>
+            </View>
+          ) : null}
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -84,13 +119,31 @@ export default function LoginScreen({ navigation }) {
             />
           </View>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Login</Text>
+          <TouchableOpacity
+            style={[styles.loginButton, loading && styles.loginButtonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.loginButtonText}>Login</Text>
+            )}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.forgotPassword}>
+          <TouchableOpacity
+            style={styles.forgotPassword}
+            onPress={() => navigation.navigate('ForgotPassword')}
+          >
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
+
+          <View style={styles.signupContainer}>
+            <Text style={styles.signupText}>Don't have an account? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.signupLink}>Sign up</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -123,6 +176,25 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
+  },
+  messageContainer: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  errorMessage: {
+    backgroundColor: '#fee',
+    borderWidth: 1,
+    borderColor: '#fcc',
+  },
+  successMessage: {
+    backgroundColor: '#efe',
+    borderWidth: 1,
+    borderColor: '#cfc',
+  },
+  messageText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   inputContainer: {
     marginBottom: 20,
@@ -158,6 +230,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  loginButtonDisabled: {
+    opacity: 0.6,
+  },
   loginButtonText: {
     color: '#fff',
     fontSize: 16,
@@ -170,5 +245,20 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: '#007AFF',
     fontSize: 14,
+  },
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  signupText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  signupLink: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
