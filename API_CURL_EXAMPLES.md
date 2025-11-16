@@ -525,7 +525,9 @@ curl -X GET http://localhost:8031/api/devices \
 **Success Response (200):**
 ```json
 {
-  "data": [
+  "status": true,
+  "message": "Devices retrieved successfully",
+  "devices": [
     {
       "id": 1,
       "device": "DEV-001",
@@ -559,7 +561,9 @@ curl -X GET http://localhost:8031/api/devices/1 \
 **Success Response (200):**
 ```json
 {
-  "data": {
+  "status": true,
+  "message": "Device retrieved successfully",
+  "device": {
     "id": 1,
     "device": "DEV-001",
     "created_at": "2025-11-16T10:30:00.000000Z",
@@ -571,6 +575,7 @@ curl -X GET http://localhost:8031/api/devices/1 \
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Device not found"
 }
 ```
@@ -586,11 +591,12 @@ curl -X POST http://localhost:8031/api/devices \
   }'
 ```
 
-**Success Response (201):**
+**Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Device created successfully",
-  "data": {
+  "device": {
     "id": 1,
     "device": "DEV-001",
     "created_at": "2025-11-16T10:30:00.000000Z",
@@ -599,15 +605,11 @@ curl -X POST http://localhost:8031/api/devices \
 }
 ```
 
-**Error Response (422 - Validation Error):**
+**Error Response (400 - Validation Error):**
 ```json
 {
-  "message": "The device has already been taken.",
-  "errors": {
-    "device": [
-      "The device has already been taken."
-    ]
-  }
+  "status": false,
+  "message": "The device has already been taken."
 }
 ```
 
@@ -625,8 +627,9 @@ curl -X PUT http://localhost:8031/api/devices/1 \
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Device updated successfully",
-  "data": {
+  "device": {
     "id": 1,
     "device": "DEV-001-UPDATED",
     "created_at": "2025-11-16T10:30:00.000000Z",
@@ -638,6 +641,7 @@ curl -X PUT http://localhost:8031/api/devices/1 \
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Device not found"
 }
 ```
@@ -652,13 +656,21 @@ curl -X DELETE http://localhost:8031/api/devices/1 \
 **Success Response (200):**
 ```json
 {
-  "message": "Device deleted successfully"
+  "status": true,
+  "message": "Device deleted successfully",
+  "device": {
+    "id": 1,
+    "device": "DEV-001",
+    "created_at": "2025-11-16T10:30:00.000000Z",
+    "updated_at": "2025-11-16T10:30:00.000000Z"
+  }
 }
 ```
 
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Device not found"
 }
 ```
@@ -677,14 +689,14 @@ curl -X GET http://localhost:8031/api/customers \
 **Success Response (200):**
 ```json
 {
-  "data": [
+  "status": true,
+  "message": "Customers retrieved successfully",
+  "customers": [
     {
       "id": 1,
       "name": "Jane Smith",
-      "email": "jane@example.com",
-      "phone": "+1234567890",
+      "contact_no": "+1234567890",
       "address": "123 Main Street, City, Country",
-      "license_number": "DL123456",
       "created_at": "2025-11-16T10:30:00.000000Z",
       "updated_at": "2025-11-16T10:30:00.000000Z"
     }
@@ -709,13 +721,13 @@ curl -X GET http://localhost:8031/api/customers/1 \
 **Success Response (200):**
 ```json
 {
-  "data": {
+  "status": true,
+  "message": "customer retrieved successfully",
+  "customer": {
     "id": 1,
     "name": "Jane Smith",
-    "email": "jane@example.com",
-    "phone": "+1234567890",
+    "contact_no": "+1234567890",
     "address": "123 Main Street, City, Country",
-    "license_number": "DL123456",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z"
   }
@@ -725,7 +737,8 @@ curl -X GET http://localhost:8031/api/customers/1 \
 **Error Response (404 - Not Found):**
 ```json
 {
-  "message": "Customer not found"
+  "status": false,
+  "message": "customer not found"
 }
 ```
 
@@ -737,39 +750,32 @@ curl -X POST http://localhost:8031/api/customers \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
     "name": "Jane Smith",
-    "email": "jane@example.com",
-    "phone": "+1234567890",
-    "address": "123 Main Street, City, Country",
-    "license_number": "DL123456"
+    "contact_no": "+1234567890",
+    "address": "123 Main Street, City, Country"
   }'
 ```
 
-**Success Response (201):**
+**Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Customer created successfully",
-  "data": {
+  "customer": {
     "id": 1,
     "name": "Jane Smith",
-    "email": "jane@example.com",
-    "phone": "+1234567890",
+    "contact_no": "+1234567890",
     "address": "123 Main Street, City, Country",
-    "license_number": "DL123456",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z"
   }
 }
 ```
 
-**Error Response (422 - Validation Error):**
+**Error Response (400 - Validation Error):**
 ```json
 {
-  "message": "The email has already been taken.",
-  "errors": {
-    "email": [
-      "The email has already been taken."
-    ]
-  }
+  "status": false,
+  "message": "The name field is required."
 }
 ```
 
@@ -781,24 +787,21 @@ curl -X PUT http://localhost:8031/api/customers/1 \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
     "name": "Jane Doe",
-    "email": "jane.doe@example.com",
-    "phone": "+1234567890",
-    "address": "456 Oak Avenue, City, Country",
-    "license_number": "DL123456"
+    "contact_no": "+1234567890",
+    "address": "456 Oak Avenue, City, Country"
   }'
 ```
 
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Customer updated successfully",
-  "data": {
+  "customer": {
     "id": 1,
     "name": "Jane Doe",
-    "email": "jane.doe@example.com",
-    "phone": "+1234567890",
+    "contact_no": "+1234567890",
     "address": "456 Oak Avenue, City, Country",
-    "license_number": "DL123456",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T12:00:00.000000Z"
   }
@@ -808,6 +811,7 @@ curl -X PUT http://localhost:8031/api/customers/1 \
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Customer not found"
 }
 ```
@@ -822,13 +826,23 @@ curl -X DELETE http://localhost:8031/api/customers/1 \
 **Success Response (200):**
 ```json
 {
-  "message": "Customer deleted successfully"
+  "status": true,
+  "message": "Customer deleted successfully",
+  "customer": {
+    "id": 1,
+    "name": "Jane Smith",
+    "contact_no": "+1234567890",
+    "address": "123 Main Street, City, Country",
+    "created_at": "2025-11-16T10:30:00.000000Z",
+    "updated_at": "2025-11-16T10:30:00.000000Z"
+  }
 }
 ```
 
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Customer not found"
 }
 ```
@@ -847,22 +861,21 @@ curl -X GET http://localhost:8031/api/vehicles \
 **Success Response (200):**
 ```json
 {
-  "data": [
+  "status": true,
+  "message": "Vehicles retrieved successfully",
+  "vehicles": [
     {
       "id": 1,
-      "plate_number": "ABC-1234",
-      "make": "Toyota",
-      "model": "Camry",
-      "year": 2023,
-      "color": "Silver",
-      "vin": "1HGBH41JXMN109186",
+      "plate_no": "ABC-1234",
+      "car_type": "Toyota Camry",
       "device_id": 1,
-      "status": "available",
       "created_at": "2025-11-16T10:30:00.000000Z",
       "updated_at": "2025-11-16T10:30:00.000000Z",
       "device": {
         "id": 1,
-        "device": "DEV-001"
+        "device": "DEV-001",
+        "created_at": "2025-11-16T10:00:00.000000Z",
+        "updated_at": "2025-11-16T10:00:00.000000Z"
       }
     }
   ]
@@ -886,23 +899,20 @@ curl -X GET http://localhost:8031/api/vehicles/1 \
 **Success Response (200):**
 ```json
 {
-  "data": {
+  "status": true,
+  "message": "Vehicle retrieved successfully",
+  "vehicle": {
     "id": 1,
-    "plate_number": "ABC-1234",
-    "make": "Toyota",
-    "model": "Camry",
-    "year": 2023,
-    "color": "Silver",
-    "vin": "1HGBH41JXMN109186",
+    "plate_no": "ABC-1234",
+    "car_type": "Toyota Camry",
     "device_id": 1,
-    "status": "available",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z",
     "device": {
       "id": 1,
-      "device_id": "DEV-001",
-      "type": "GPS Tracker",
-      "status": "active"
+      "device": "DEV-001",
+      "created_at": "2025-11-16T10:00:00.000000Z",
+      "updated_at": "2025-11-16T10:00:00.000000Z"
     }
   }
 }
@@ -911,6 +921,7 @@ curl -X GET http://localhost:8031/api/vehicles/1 \
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Vehicle not found"
 }
 ```
@@ -922,58 +933,35 @@ curl -X POST http://localhost:8031/api/vehicles \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "plate_number": "ABC-1234",
-    "make": "Toyota",
-    "model": "Camry",
-    "year": 2023,
-    "color": "Silver",
-    "vin": "1HGBH41JXMN109186",
-    "device_id": 1,
-    "status": "available"
+    "plate_no": "ABC-1234",
+    "car_type": "Toyota Camry",
+    "device_id": 1
   }'
 ```
 
-**Success Response (201):**
+**Note:** The `device_id` field is optional. If provided, it must reference a valid device ID.
+
+**Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Vehicle created successfully",
-  "data": {
+  "vehicle": {
     "id": 1,
-    "plate_number": "ABC-1234",
-    "make": "Toyota",
-    "model": "Camry",
-    "year": 2023,
-    "color": "Silver",
-    "vin": "1HGBH41JXMN109186",
+    "plate_no": "ABC-1234",
+    "car_type": "Toyota Camry",
     "device_id": 1,
-    "status": "available",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z"
   }
 }
 ```
 
-**Error Response (422 - Validation Error):**
+**Error Response (400 - Validation Error):**
 ```json
 {
-  "message": "The plate number has already been taken.",
-  "errors": {
-    "plate_number": [
-      "The plate number has already been taken."
-    ]
-  }
-}
-```
-
-**Error Response (422 - Invalid Device):**
-```json
-{
-  "message": "The selected device id is invalid.",
-  "errors": {
-    "device_id": [
-      "The selected device id is invalid."
-    ]
-  }
+  "status": false,
+  "message": "The plate no has already been taken."
 }
 ```
 
@@ -984,31 +972,22 @@ curl -X PUT http://localhost:8031/api/vehicles/1 \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "plate_number": "ABC-1234",
-    "make": "Toyota",
-    "model": "Camry Hybrid",
-    "year": 2023,
-    "color": "Blue",
-    "vin": "1HGBH41JXMN109186",
-    "device_id": 1,
-    "status": "available"
+    "plate_no": "ABC-1234",
+    "car_type": "Toyota Camry Hybrid",
+    "device_id": 2
   }'
 ```
 
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Vehicle updated successfully",
-  "data": {
+  "vehicle": {
     "id": 1,
-    "plate_number": "ABC-1234",
-    "make": "Toyota",
-    "model": "Camry Hybrid",
-    "year": 2023,
-    "color": "Blue",
-    "vin": "1HGBH41JXMN109186",
-    "device_id": 1,
-    "status": "available",
+    "plate_no": "ABC-1234",
+    "car_type": "Toyota Camry Hybrid",
+    "device_id": 2,
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T12:00:00.000000Z"
   }
@@ -1018,6 +997,7 @@ curl -X PUT http://localhost:8031/api/vehicles/1 \
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Vehicle not found"
 }
 ```
@@ -1032,13 +1012,23 @@ curl -X DELETE http://localhost:8031/api/vehicles/1 \
 **Success Response (200):**
 ```json
 {
-  "message": "Vehicle deleted successfully"
+  "status": true,
+  "message": "Vehicle deleted successfully",
+  "vehicle": {
+    "id": 1,
+    "plate_no": "ABC-1234",
+    "car_type": "Toyota Camry",
+    "device_id": 1,
+    "created_at": "2025-11-16T10:30:00.000000Z",
+    "updated_at": "2025-11-16T10:30:00.000000Z"
+  }
 }
 ```
 
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Vehicle not found"
 }
 ```
@@ -1057,36 +1047,54 @@ curl -X GET http://localhost:8031/api/rentals \
 **Success Response (200):**
 ```json
 {
-  "data": [
+  "status": true,
+  "message": "Rentals retrieved successfully",
+  "rentals": [
     {
       "id": 1,
-      "vehicle_id": 1,
       "customer_id": 1,
-      "start_date": "2025-11-15",
-      "end_date": "2025-11-20",
-      "actual_start_date": "2025-11-15T09:00:00.000000Z",
-      "actual_end_date": null,
-      "daily_rate": "50.00",
-      "total_amount": "250.00",
-      "deposit": "200.00",
-      "odometer_start": 15000,
-      "odometer_end": null,
-      "fuel_level_start": "full",
-      "fuel_level_end": null,
-      "status": "active",
-      "notes": "Customer requested child seat",
+      "vehicle_id": 1,
+      "started_at": "2025-11-15T09:00:00.000000Z",
+      "ended_at": null,
+      "created_at": "2025-11-15T08:30:00.000000Z",
+      "updated_at": "2025-11-15T09:00:00.000000Z"
+    }
+  ]
+}
+```
+
+**Note:** To include related customer and vehicle data, add the `include` query parameter:
+```bash
+curl -X GET "http://localhost:8031/api/rentals?include=customer,vehicle" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+**Response with includes:**
+```json
+{
+  "status": true,
+  "message": "Rentals retrieved successfully",
+  "rentals": [
+    {
+      "id": 1,
+      "customer_id": 1,
+      "vehicle_id": 1,
+      "started_at": "2025-11-15T09:00:00.000000Z",
+      "ended_at": null,
       "created_at": "2025-11-15T08:30:00.000000Z",
       "updated_at": "2025-11-15T09:00:00.000000Z",
-      "vehicle": {
-        "id": 1,
-        "plate_number": "ABC-1234",
-        "make": "Toyota",
-        "model": "Camry"
-      },
       "customer": {
         "id": 1,
         "name": "Jane Smith",
-        "email": "jane@example.com"
+        "contact_no": "+1234567890",
+        "address": "123 Main Street, City, Country"
+      },
+      "vehicle": {
+        "id": 1,
+        "plate_no": "ABC-1234",
+        "car_type": "Toyota Camry",
+        "device_id": 1
       }
     }
   ]
@@ -1110,36 +1118,16 @@ curl -X GET http://localhost:8031/api/rentals/1 \
 **Success Response (200):**
 ```json
 {
-  "data": {
+  "status": true,
+  "message": "Rental retrieved successfully",
+  "rental": {
     "id": 1,
-    "vehicle_id": 1,
     "customer_id": 1,
-    "start_date": "2025-11-15",
-    "end_date": "2025-11-20",
-    "actual_start_date": "2025-11-15T09:00:00.000000Z",
-    "actual_end_date": null,
-    "daily_rate": "50.00",
-    "total_amount": "250.00",
-    "deposit": "200.00",
-    "odometer_start": 15000,
-    "odometer_end": null,
-    "fuel_level_start": "full",
-    "fuel_level_end": null,
-    "status": "active",
-    "notes": "Customer requested child seat",
+    "vehicle_id": 1,
+    "started_at": "2025-11-15T09:00:00.000000Z",
+    "ended_at": null,
     "created_at": "2025-11-15T08:30:00.000000Z",
-    "updated_at": "2025-11-15T09:00:00.000000Z",
-    "vehicle": {
-      "id": 1,
-      "plate_number": "ABC-1234",
-      "make": "Toyota",
-      "model": "Camry"
-    },
-    "customer": {
-      "id": 1,
-      "name": "Jane Smith",
-      "email": "jane@example.com"
-    }
+    "updated_at": "2025-11-15T09:00:00.000000Z"
   }
 }
 ```
@@ -1147,6 +1135,7 @@ curl -X GET http://localhost:8031/api/rentals/1 \
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Rental not found"
 }
 ```
@@ -1158,55 +1147,41 @@ curl -X POST http://localhost:8031/api/rentals \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "vehicle_id": 1,
     "customer_id": 1,
-    "start_date": "2025-11-15",
-    "end_date": "2025-11-20",
-    "daily_rate": 50.00,
-    "deposit": 200.00,
-    "notes": "Customer requested child seat"
+    "vehicle_id": 1
   }'
 ```
 
 **Success Response (201):**
 ```json
 {
+  "status": true,
   "message": "Rental created successfully",
-  "data": {
+  "rental": {
     "id": 1,
-    "vehicle_id": 1,
     "customer_id": 1,
-    "start_date": "2025-11-15",
-    "end_date": "2025-11-20",
-    "actual_start_date": null,
-    "actual_end_date": null,
-    "daily_rate": "50.00",
-    "total_amount": "250.00",
-    "deposit": "200.00",
-    "status": "pending",
-    "notes": "Customer requested child seat",
+    "vehicle_id": 1,
+    "started_at": null,
+    "ended_at": null,
     "created_at": "2025-11-15T08:30:00.000000Z",
     "updated_at": "2025-11-15T08:30:00.000000Z"
   }
 }
 ```
 
-**Error Response (422 - Validation Error):**
+**Error Response (400 - Validation Error):**
 ```json
 {
-  "message": "The selected vehicle id is invalid.",
-  "errors": {
-    "vehicle_id": [
-      "The selected vehicle id is invalid."
-    ]
-  }
+  "status": false,
+  "message": "The customer id field is required."
 }
 ```
 
-**Error Response (400 - Vehicle Not Available):**
+**Error Response (409 - Vehicle Already Rented):**
 ```json
 {
-  "message": "Vehicle is not available for the selected dates"
+  "status": false,
+  "message": "This vehicle is already rented and not available"
 }
 ```
 
@@ -1217,31 +1192,22 @@ curl -X PUT http://localhost:8031/api/rentals/1 \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "vehicle_id": 1,
     "customer_id": 1,
-    "start_date": "2025-11-15",
-    "end_date": "2025-11-22",
-    "daily_rate": 50.00,
-    "deposit": 200.00,
-    "notes": "Extended rental period"
+    "vehicle_id": 2
   }'
 ```
 
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Rental updated successfully",
-  "data": {
+  "rental": {
     "id": 1,
-    "vehicle_id": 1,
     "customer_id": 1,
-    "start_date": "2025-11-15",
-    "end_date": "2025-11-22",
-    "daily_rate": "50.00",
-    "total_amount": "350.00",
-    "deposit": "200.00",
-    "status": "pending",
-    "notes": "Extended rental period",
+    "vehicle_id": 2,
+    "started_at": null,
+    "ended_at": null,
     "created_at": "2025-11-15T08:30:00.000000Z",
     "updated_at": "2025-11-15T10:00:00.000000Z"
   }
@@ -1251,6 +1217,7 @@ curl -X PUT http://localhost:8031/api/rentals/1 \
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Rental not found"
 }
 ```
@@ -1260,25 +1227,20 @@ curl -X PUT http://localhost:8031/api/rentals/1 \
 curl -X POST http://localhost:8031/api/rentals/1/start \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-  -d '{
-    "odometer_start": 15000
-  }'
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Rental started successfully",
-  "data": {
+  "rental": {
     "id": 1,
-    "vehicle_id": 1,
     "customer_id": 1,
-    "start_date": "2025-11-15",
-    "end_date": "2025-11-20",
-    "actual_start_date": "2025-11-15T09:00:00.000000Z",
-    "odometer_start": 15000,
-    "status": "active",
+    "vehicle_id": 1,
+    "started_at": "2025-11-15T09:00:00.000000Z",
+    "ended_at": null,
     "created_at": "2025-11-15T08:30:00.000000Z",
     "updated_at": "2025-11-15T09:00:00.000000Z"
   }
@@ -1288,13 +1250,24 @@ curl -X POST http://localhost:8031/api/rentals/1/start \
 **Error Response (400 - Already Started):**
 ```json
 {
-  "message": "Rental has already been started"
+  "status": false,
+  "message": "Rental already started",
+  "rental": {
+    "id": 1,
+    "customer_id": 1,
+    "vehicle_id": 1,
+    "started_at": "2025-11-15T09:00:00.000000Z",
+    "ended_at": null,
+    "created_at": "2025-11-15T08:30:00.000000Z",
+    "updated_at": "2025-11-15T09:00:00.000000Z"
+  }
 }
 ```
 
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Rental not found"
 }
 ```
@@ -1304,31 +1277,20 @@ curl -X POST http://localhost:8031/api/rentals/1/start \
 curl -X POST http://localhost:8031/api/rentals/1/end \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-  -d '{
-    "odometer_end": 15500,
-    "fuel_level": "full",
-    "condition_notes": "Vehicle returned in good condition"
-  }'
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Rental ended successfully",
-  "data": {
+  "rental": {
     "id": 1,
-    "vehicle_id": 1,
     "customer_id": 1,
-    "start_date": "2025-11-15",
-    "end_date": "2025-11-20",
-    "actual_start_date": "2025-11-15T09:00:00.000000Z",
-    "actual_end_date": "2025-11-20T17:00:00.000000Z",
-    "odometer_start": 15000,
-    "odometer_end": 15500,
-    "fuel_level_end": "full",
-    "status": "completed",
-    "condition_notes": "Vehicle returned in good condition",
+    "vehicle_id": 1,
+    "started_at": "2025-11-15T09:00:00.000000Z",
+    "ended_at": "2025-11-20T17:00:00.000000Z",
     "created_at": "2025-11-15T08:30:00.000000Z",
     "updated_at": "2025-11-20T17:00:00.000000Z"
   }
@@ -1338,20 +1300,41 @@ curl -X POST http://localhost:8031/api/rentals/1/end \
 **Error Response (400 - Not Started):**
 ```json
 {
-  "message": "Rental has not been started yet"
+  "status": false,
+  "message": "Rental not yet started",
+  "rental": {
+    "id": 1,
+    "customer_id": 1,
+    "vehicle_id": 1,
+    "started_at": null,
+    "ended_at": null,
+    "created_at": "2025-11-15T08:30:00.000000Z",
+    "updated_at": "2025-11-15T08:30:00.000000Z"
+  }
 }
 ```
 
 **Error Response (400 - Already Ended):**
 ```json
 {
-  "message": "Rental has already been ended"
+  "status": false,
+  "message": "Rental already ended",
+  "rental": {
+    "id": 1,
+    "customer_id": 1,
+    "vehicle_id": 1,
+    "started_at": "2025-11-15T09:00:00.000000Z",
+    "ended_at": "2025-11-20T17:00:00.000000Z",
+    "created_at": "2025-11-15T08:30:00.000000Z",
+    "updated_at": "2025-11-20T17:00:00.000000Z"
+  }
 }
 ```
 
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Rental not found"
 }
 ```
@@ -1366,13 +1349,24 @@ curl -X DELETE http://localhost:8031/api/rentals/1 \
 **Success Response (200):**
 ```json
 {
-  "message": "Rental deleted successfully"
+  "status": true,
+  "message": "Rental deleted successfully",
+  "rental": {
+    "id": 1,
+    "customer_id": 1,
+    "vehicle_id": 1,
+    "started_at": "2025-11-15T09:00:00.000000Z",
+    "ended_at": "2025-11-20T17:00:00.000000Z",
+    "created_at": "2025-11-15T08:30:00.000000Z",
+    "updated_at": "2025-11-20T17:00:00.000000Z"
+  }
 }
 ```
 
 **Error Response (404 - Not Found):**
 ```json
 {
+  "status": false,
   "message": "Rental not found"
 }
 ```
@@ -1383,52 +1377,24 @@ curl -X DELETE http://localhost:8031/api/rentals/1 \
 
 ### Get Location (GPS Device Endpoint)
 ```bash
-curl -X GET "http://localhost:8031/api/location?device=DEV-001&lat=40.7128&lng=-74.0060&speed=45&heading=90&altitude=10" \
+curl -X GET "http://localhost:8031/api/location?lat=40.7128&lng=-74.0060" \
   -H "Accept: application/json"
 ```
 
 **Query Parameters:**
-- `device` (required): Device identifier
-- `lat` (required): Latitude
-- `lng` (required): Longitude
-- `speed` (optional): Speed in km/h
-- `heading` (optional): Heading in degrees (0-360)
-- `altitude` (optional): Altitude in meters
+- `lat` (optional): Latitude
+- `lng` (optional): Longitude
+
+**Note:** This is currently a mock endpoint for testing purposes. Location data is NOT persisted to the database.
 
 **Success Response (200):**
 ```json
 {
-  "message": "Location data received and stored successfully",
-  "data": {
-    "id": 1,
-    "device_id": 1,
-    "latitude": "40.7128",
-    "longitude": "-74.0060",
-    "speed": "45.00",
-    "heading": "90.00",
-    "altitude": "10.00",
-    "timestamp": "2025-11-16T10:30:00.000000Z",
-    "created_at": "2025-11-16T10:30:00.000000Z",
-    "updated_at": "2025-11-16T10:30:00.000000Z"
-  }
-}
-```
-
-**Error Response (404 - Device Not Found):**
-```json
-{
-  "message": "Device not found"
-}
-```
-
-**Error Response (422 - Validation Error):**
-```json
-{
-  "message": "The device field is required.",
-  "errors": {
-    "device": [
-      "The device field is required."
-    ]
+  "success": true,
+  "message": "Location saved",
+  "location": {
+    "lat": "40.7128",
+    "lng": "-74.0060"
   }
 }
 ```
