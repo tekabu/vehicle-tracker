@@ -528,17 +528,13 @@ curl -X GET http://localhost:8031/api/devices \
   "data": [
     {
       "id": 1,
-      "device_id": "DEV-001",
-      "type": "GPS Tracker",
-      "status": "active",
+      "device": "DEV-001",
       "created_at": "2025-11-16T10:30:00.000000Z",
       "updated_at": "2025-11-16T10:30:00.000000Z"
     },
     {
       "id": 2,
-      "device_id": "DEV-002",
-      "type": "GPS Tracker Pro",
-      "status": "inactive",
+      "device": "DEV-002",
       "created_at": "2025-11-16T11:00:00.000000Z",
       "updated_at": "2025-11-16T11:00:00.000000Z"
     }
@@ -565,9 +561,7 @@ curl -X GET http://localhost:8031/api/devices/1 \
 {
   "data": {
     "id": 1,
-    "device_id": "DEV-001",
-    "type": "GPS Tracker",
-    "status": "active",
+    "device": "DEV-001",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z"
   }
@@ -588,9 +582,7 @@ curl -X POST http://localhost:8031/api/devices \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "device_id": "DEV-001",
-    "type": "GPS Tracker",
-    "status": "active"
+    "device": "DEV-001"
   }'
 ```
 
@@ -600,9 +592,7 @@ curl -X POST http://localhost:8031/api/devices \
   "message": "Device created successfully",
   "data": {
     "id": 1,
-    "device_id": "DEV-001",
-    "type": "GPS Tracker",
-    "status": "active",
+    "device": "DEV-001",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z"
   }
@@ -612,10 +602,10 @@ curl -X POST http://localhost:8031/api/devices \
 **Error Response (422 - Validation Error):**
 ```json
 {
-  "message": "The device id has already been taken.",
+  "message": "The device has already been taken.",
   "errors": {
-    "device_id": [
-      "The device id has already been taken."
+    "device": [
+      "The device has already been taken."
     ]
   }
 }
@@ -628,9 +618,7 @@ curl -X PUT http://localhost:8031/api/devices/1 \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "device_id": "DEV-001-UPDATED",
-    "type": "GPS Tracker Pro",
-    "status": "active"
+    "device": "DEV-001-UPDATED"
   }'
 ```
 
@@ -640,9 +628,7 @@ curl -X PUT http://localhost:8031/api/devices/1 \
   "message": "Device updated successfully",
   "data": {
     "id": 1,
-    "device_id": "DEV-001-UPDATED",
-    "type": "GPS Tracker Pro",
-    "status": "active",
+    "device": "DEV-001-UPDATED",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T12:00:00.000000Z"
   }
@@ -876,9 +862,7 @@ curl -X GET http://localhost:8031/api/vehicles \
       "updated_at": "2025-11-16T10:30:00.000000Z",
       "device": {
         "id": 1,
-        "device_id": "DEV-001",
-        "type": "GPS Tracker",
-        "status": "active"
+        "device": "DEV-001"
       }
     }
   ]
@@ -1399,12 +1383,12 @@ curl -X DELETE http://localhost:8031/api/rentals/1 \
 
 ### Get Location (GPS Device Endpoint)
 ```bash
-curl -X GET "http://localhost:8031/api/location?device_id=DEV-001&lat=40.7128&lng=-74.0060&speed=45&heading=90&altitude=10" \
+curl -X GET "http://localhost:8031/api/location?device=DEV-001&lat=40.7128&lng=-74.0060&speed=45&heading=90&altitude=10" \
   -H "Accept: application/json"
 ```
 
 **Query Parameters:**
-- `device_id` (required): Device identifier
+- `device` (required): Device identifier
 - `lat` (required): Latitude
 - `lng` (required): Longitude
 - `speed` (optional): Speed in km/h
@@ -1440,10 +1424,10 @@ curl -X GET "http://localhost:8031/api/location?device_id=DEV-001&lat=40.7128&ln
 **Error Response (422 - Validation Error):**
 ```json
 {
-  "message": "The device id field is required.",
+  "message": "The device field is required.",
   "errors": {
-    "device_id": [
-      "The device id field is required."
+    "device": [
+      "The device field is required."
     ]
   }
 }
