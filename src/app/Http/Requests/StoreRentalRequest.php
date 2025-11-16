@@ -24,8 +24,8 @@ class StoreRentalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "customer_id" => "required|string|exists:customers,id",
-            "vehicle_id" => "required|string|exists:vehicles,id"
+            "customer_id" => "required|exists:customers,id",
+            "vehicle_id" => "required|exists:vehicles,id"
         ];
     }
 
