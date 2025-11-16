@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../components/Header';
 import Card, { CardHeader, CardRow, CardSection } from '../../components/Card';
 import customerService from '../../services/customerService';
@@ -9,6 +10,13 @@ const CustomerDetailScreen = ({ navigation, route }) => {
   const { customerId } = route.params;
   const [customer, setCustomer] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Reload customer when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCustomer();
+    }, [customerId])
+  );
 
   useEffect(() => {
     loadCustomer();
@@ -58,7 +66,7 @@ const CustomerDetailScreen = ({ navigation, route }) => {
     return (
       <View style={styles.container}>
         <StatusBar style="dark" />
-        <Header title="Customer Details" navigation={navigation} />
+        <Header title="Customer Details" navigation={navigation} showBackButton={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -76,6 +84,7 @@ const CustomerDetailScreen = ({ navigation, route }) => {
       <Header
         title="Customer Details"
         navigation={navigation}
+        showBackButton={true}
         rightElement={
           <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
             <Text style={styles.editButtonText}>Edit</Text>
@@ -88,9 +97,7 @@ const CustomerDetailScreen = ({ navigation, route }) => {
           <CardHeader title={customer.name} subtitle={`ID: ${customer.id}`} />
 
           <CardSection>
-            <CardRow label="Email" value={customer.email} />
-            <CardRow label="Phone" value={customer.phone || 'N/A'} />
-            <CardRow label="License Number" value={customer.license_number || 'N/A'} />
+            <CardRow label="Contact" value={customer.contact_no || 'N/A'} />
           </CardSection>
 
           <CardSection style={styles.addressSection}>

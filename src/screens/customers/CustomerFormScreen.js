@@ -20,10 +20,8 @@ const CustomerFormScreen = ({ navigation, route }) => {
 
   const [formData, setFormData] = useState({
     name: customer?.name || '',
-    email: customer?.email || '',
-    phone: customer?.phone || '',
+    contact_no: customer?.contact_no || '',
     address: customer?.address || '',
-    license_number: customer?.license_number || '',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -42,10 +40,8 @@ const CustomerFormScreen = ({ navigation, route }) => {
       newErrors.name = 'Name is required';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+    if (!formData.contact_no.trim()) {
+      newErrors.contact_no = 'Contact number is required';
     }
 
     setErrors(newErrors);
@@ -68,7 +64,7 @@ const CustomerFormScreen = ({ navigation, route }) => {
       }
       navigation.goBack();
     } catch (error) {
-      if (error.errors) {
+      if (error.errors && Object.keys(error.errors).length > 0) {
         setErrors(error.errors);
       }
       Alert.alert('Error', error.message || 'Failed to save customer');
@@ -86,6 +82,7 @@ const CustomerFormScreen = ({ navigation, route }) => {
       <Header
         title={isEditing ? 'Edit Customer' : 'New Customer'}
         navigation={navigation}
+        showBackButton={true}
       />
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
@@ -103,43 +100,16 @@ const CustomerFormScreen = ({ navigation, route }) => {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Email *</Text>
+            <Text style={styles.label}>Contact Number *</Text>
             <TextInput
-              style={[styles.input, errors.email && styles.inputError]}
-              value={formData.email}
-              onChangeText={(value) => handleChange('email', value)}
-              placeholder="Enter email address"
-              placeholderTextColor="#999"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Phone</Text>
-            <TextInput
-              style={[styles.input, errors.phone && styles.inputError]}
-              value={formData.phone}
-              onChangeText={(value) => handleChange('phone', value)}
-              placeholder="Enter phone number"
+              style={[styles.input, errors.contact_no && styles.inputError]}
+              value={formData.contact_no}
+              onChangeText={(value) => handleChange('contact_no', value)}
+              placeholder="Enter contact number"
               placeholderTextColor="#999"
               keyboardType="phone-pad"
             />
-            {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>License Number</Text>
-            <TextInput
-              style={[styles.input, errors.license_number && styles.inputError]}
-              value={formData.license_number}
-              onChangeText={(value) => handleChange('license_number', value)}
-              placeholder="Enter license number"
-              placeholderTextColor="#999"
-              autoCapitalize="characters"
-            />
-            {errors.license_number && <Text style={styles.errorText}>{errors.license_number}</Text>}
+            {errors.contact_no && <Text style={styles.errorText}>{errors.contact_no}</Text>}
           </View>
 
           <View style={styles.formGroup}>

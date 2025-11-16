@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../components/Header';
 import Card, { CardHeader, CardRow } from '../../components/Card';
 import customerService from '../../services/customerService';
@@ -10,6 +11,13 @@ const CustomersListScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Reload customers when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadCustomers();
+    }, [])
+  );
+
   useEffect(() => {
     loadCustomers();
   }, []);
@@ -18,9 +26,12 @@ const CustomersListScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const data = await customerService.getAll();
-      setCustomers(data);
+      // Ensure data is always an array
+      const customersArray = Array.isArray(data) ? data : [];
+      setCustomers(customersArray);
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to load customers');
+      setCustomers([]); // Set empty array on error
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -62,7 +73,7 @@ const CustomersListScreen = ({ navigation }) => {
     >
       <CardHeader
         title={customer.name}
-        subtitle={customer.email}
+        subtitle={customer.contact_no}
         rightElement={
           <TouchableOpacity
             onPress={() => handleDelete(customer.id, customer.name)}
@@ -72,8 +83,7 @@ const CustomersListScreen = ({ navigation }) => {
           </TouchableOpacity>
         }
       />
-      <CardRow label="Phone" value={customer.phone || 'N/A'} />
-      <CardRow label="License" value={customer.license_number || 'N/A'} />
+      <CardRow label="Address" value={customer.address || 'N/A'} />
     </Card>
   );
 

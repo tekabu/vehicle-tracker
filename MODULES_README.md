@@ -57,7 +57,7 @@ src/
 - **Responsive Design** - Optimized for mobile devices
 
 ### Customers Module
-- Manage customer information (name, email, phone, address, license number)
+- Manage customer information (name, email, contact, address)
 - View customer details
 - Create and edit customers
 - Delete customers with confirmation
