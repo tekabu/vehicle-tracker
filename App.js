@@ -31,6 +31,7 @@ import DeviceFormScreen from './src/screens/devices/DeviceFormScreen';
 import VehiclesListScreen from './src/screens/vehicles/VehiclesListScreen';
 import VehicleDetailScreen from './src/screens/vehicles/VehicleDetailScreen';
 import VehicleFormScreen from './src/screens/vehicles/VehicleFormScreen';
+import VehicleTrackingScreen from './src/screens/vehicles/VehicleTrackingScreen';
 
 // Rentals
 import RentalsListScreen from './src/screens/rentals/RentalsListScreen';
@@ -248,6 +249,7 @@ export default function App() {
         {/* Vehicle Screens */}
         <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
         <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
+        <Stack.Screen name="VehicleTracking" component={VehicleTrackingScreen} />
 
         {/* Rental Screens */}
         <Stack.Screen name="RentalDetail" component={RentalDetailScreen} />

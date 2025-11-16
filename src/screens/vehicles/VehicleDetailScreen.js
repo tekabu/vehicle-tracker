@@ -121,6 +121,13 @@ const VehicleDetailScreen = ({ navigation, route }) => {
             <CardSection style={styles.section}>
               <Text style={styles.sectionTitle}>Device</Text>
               <CardRow label="Device ID" value={vehicle.device.device} />
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate('VehicleTracking', { vehicleId: vehicle.id })}
+                style={styles.trackButton}
+              >
+                <Text style={styles.trackButtonText}>Track Vehicle Location</Text>
+              </TouchableOpacity>
             </CardSection>
           )}
 
@@ -207,6 +214,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deleteButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  trackButton: {
+    backgroundColor: '#007AFF',
+    marginTop: 12,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  trackButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
