@@ -241,6 +241,99 @@ curl -X POST http://localhost:8031/api/password/reset \
 
 ## User Management
 
+### Get User Profile
+```bash
+curl -X GET http://localhost:8031/api/profile \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+**Success Response (200):**
+```json
+{
+  "status": true,
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "email_verified_at": null,
+    "created_at": "2025-11-16T10:30:00.000000Z",
+    "updated_at": "2025-11-16T10:30:00.000000Z"
+  }
+}
+```
+
+**Error Response (401 - Unauthenticated):**
+```json
+{
+  "message": "Unauthenticated."
+}
+```
+
+### Update User Profile
+```bash
+curl -X PUT http://localhost:8031/api/profile \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "name": "John Updated",
+    "email": "john.updated@example.com"
+  }'
+```
+
+**Note:** You can also use PATCH method and update fields individually:
+```bash
+# Update only name
+curl -X PATCH http://localhost:8031/api/profile \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "name": "John Updated"
+  }'
+
+# Update only email
+curl -X PATCH http://localhost:8031/api/profile \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "email": "john.updated@example.com"
+  }'
+```
+
+**Success Response (200):**
+```json
+{
+  "status": true,
+  "message": "Profile updated successfully",
+  "user": {
+    "id": 1,
+    "name": "John Updated",
+    "email": "john.updated@example.com",
+    "email_verified_at": null,
+    "created_at": "2025-11-16T10:30:00.000000Z",
+    "updated_at": "2025-11-16T15:45:00.000000Z"
+  }
+}
+```
+
+**Error Response (400 - Validation Error):**
+```json
+{
+  "status": false,
+  "message": "The email has already been taken."
+}
+```
+
+**Error Response (401 - Unauthenticated):**
+```json
+{
+  "message": "Unauthenticated."
+}
+```
+
 ### Change Password (Authenticated)
 ```bash
 curl -X POST http://localhost:8031/api/password/change \
@@ -248,7 +341,7 @@ curl -X POST http://localhost:8031/api/password/change \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "current_password": "OldPassword123!",
+    "old_password": "OldPassword123!",
     "password": "NewPassword123!",
     "password_confirmation": "NewPassword123!"
   }'
@@ -257,26 +350,24 @@ curl -X POST http://localhost:8031/api/password/change \
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Password changed successfully"
 }
 ```
 
-**Error Response (400 - Incorrect Current Password):**
+**Error Response (401 - Incorrect Old Password):**
 ```json
 {
-  "message": "Current password is incorrect"
+  "status": false,
+  "message": "Old password is incorrect"
 }
 ```
 
-**Error Response (422 - Validation Error):**
+**Error Response (400 - Validation Error):**
 ```json
 {
-  "message": "The password field confirmation does not match.",
-  "errors": {
-    "password": [
-      "The password field confirmation does not match."
-    ]
-  }
+  "status": false,
+  "message": "The password field confirmation does not match."
 }
 ```
 

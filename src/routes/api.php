@@ -35,6 +35,11 @@ Route::middleware('auth:sanctum')->group(function ()
 
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    // User profile routes
+    Route::get('/profile', [UserController::class, 'profile']);
+    Route::put('/profile', [UserController::class, 'updateProfile']);
+    Route::patch('/profile', [UserController::class, 'updateProfile']);
+
     // Password change for authenticated users
     Route::post('/password/change', [UserController::class, 'changePassword']);
 

@@ -10,6 +10,7 @@ use App\Models\PasswordResetToken;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\UpdateProfileRequest;
 
 class UserController extends Controller
 {
@@ -103,6 +104,42 @@ class UserController extends Controller
         return response()->json([
             "status" => true,
             "message" => "Password changed successfully"
+        ], 200);
+    }
+
+    /**
+     * Get authenticated user's profile
+     */
+    public function profile(Request $request)
+    {
+        return response()->json([
+            "status" => true,
+            "user" => $request->user()
+        ], 200);
+    }
+
+    /**
+     * Update authenticated user's profile (name and/or email)
+     */
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $user = $request->user();
+
+        // Update only the fields that are present in the request
+        if ($request->has('name')) {
+            $user->name = $request->name;
+        }
+
+        if ($request->has('email')) {
+            $user->email = $request->email;
+        }
+
+        $user->save();
+
+        return response()->json([
+            "status" => true,
+            "message" => "Profile updated successfully",
+            "user" => $user
         ], 200);
     }
 }
