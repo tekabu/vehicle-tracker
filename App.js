@@ -114,7 +114,7 @@ function DrawerNavigator({ navigation }) {
           drawerLabel: 'Home',
         }}
       />
-      <Drawer.Screen
+      {/* <Drawer.Screen
         name="Page1"
         component={Page1}
         options={{
@@ -127,7 +127,7 @@ function DrawerNavigator({ navigation }) {
         options={{
           drawerLabel: 'Page 2',
         }}
-      />
+      /> */}
       <Drawer.Screen
         name="Customers"
         component={CustomersListScreen}
