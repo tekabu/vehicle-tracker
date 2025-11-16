@@ -224,4 +224,4 @@ eas build --platform ios
 
 ## Support
 
-For issues and questions, please [create an issue](link-to-issues) in the repository.
+For issues and questions, please [create an issue](link-to-issues) in the repository. 
