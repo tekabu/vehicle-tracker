@@ -1,7 +1,11 @@
 // Base API configuration
-// API_BASE_URL is loaded from environment variables (.env file)
-// For Expo, use process.env with the EXPO_PUBLIC_ prefix
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8031/api';
+// API_BASE_URL is loaded from app.json extra field for production builds
+// or from environment variables (.env file) for development
+import Constants from 'expo-constants';
+
+const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl ||
+                     process.env.EXPO_PUBLIC_API_BASE_URL ||
+                     'http://localhost:8031/api';
 
 // Use AsyncStorage for React Native persistent storage
 import storage from '@react-native-async-storage/async-storage';

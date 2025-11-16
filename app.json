@@ -29,7 +29,8 @@
     "extra": {
       "eas": {
         "projectId": "7029d2a1-72ff-437e-a13c-036c236f0189"
-      }
+      },
+      "apiBaseUrl": "https://tracker.fireflyelectric.dev/api"
     }
   }
 }
