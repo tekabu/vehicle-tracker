@@ -58,6 +58,10 @@ class RentalController extends Controller
 
         $rental = Rental::create($request->validated());
 
+        $rental = Rental::with(['customer', 'vehicle'])
+        ->where('id', $rental->id)
+        ->first();
+
         return response()->json([
             "status" => true,
             "message" => "Rental created successfully",
@@ -70,7 +74,9 @@ class RentalController extends Controller
      */
     public function show(string $id)
     {
-        $rental = Rental::find($id);
+        $rental = Rental::with(['customer', 'vehicle'])
+        ->where('id', $id)
+        ->first();
         
         if (!$rental) {
             return response()->json([
@@ -101,6 +107,10 @@ class RentalController extends Controller
         }
 
         $rental->update($request->validated());
+
+        $rental = Rental::with(['customer', 'vehicle'])
+        ->where('id', $id)
+        ->first();
 
         return response()->json([
             'status' => true,
@@ -155,6 +165,10 @@ class RentalController extends Controller
 
         $rental->save();
 
+        $rental = Rental::with(['customer', 'vehicle'])
+        ->where('id', $rental->id)
+        ->first();
+
         return response()->json([
             'status' => true,
             'message' => 'Rental started successfully',
@@ -192,6 +206,10 @@ class RentalController extends Controller
         $rental->ended_at = Carbon::now();
 
         $rental->save();
+
+        $rental = Rental::with(['customer', 'vehicle'])
+        ->where('id', $rental->id)
+        ->first();
 
         return response()->json([
             'status' => true,
