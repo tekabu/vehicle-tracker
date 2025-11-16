@@ -42,6 +42,19 @@ class ApiService {
     await storage.removeItem('authToken');
   }
 
+  async setUserData(userData) {
+    await storage.setItem('userData', JSON.stringify(userData));
+  }
+
+  async getUserData() {
+    const userData = await storage.getItem('userData');
+    return userData ? JSON.parse(userData) : null;
+  }
+
+  async clearUserData() {
+    await storage.removeItem('userData');
+  }
+
   async request(endpoint, options = {}) {
     // Wait for token initialization if not yet initialized
     if (!this.tokenInitialized) {

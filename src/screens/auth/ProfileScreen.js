@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ export default function ProfileScreen({ navigation }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [profileLoading, setProfileLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [profileMessage, setProfileMessage] = useState({ type: '', text: '' });
 
   // Change Password State
@@ -25,6 +26,25 @@ export default function ProfileScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+
+  // Load user data on component mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userData = await authService.getUserData();
+        if (userData) {
+          setName(userData.name || '');
+          setEmail(userData.email || '');
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -53,11 +73,21 @@ export default function ProfileScreen({ navigation }) {
 
     try {
       setProfileLoading(true);
-      // TODO: Create API endpoint for updating profile
-      // const response = await authService.updateProfile({ name, email });
+      const response = await authService.updateProfile({ name, email });
 
-      // For now, just show success message
-      setProfileMessage({ type: 'success', text: 'Profile updated successfully' });
+      // Update stored user data with the response
+      if (response.user) {
+        await authService.getUserData().then(async (currentUserData) => {
+          const updatedUserData = { ...currentUserData, ...response.user };
+          await authService.setUserData(updatedUserData);
+        });
+
+        // Update form values from response to reflect any server-side changes
+        setName(response.user.name || name);
+        setEmail(response.user.email || email);
+      }
+
+      setProfileMessage({ type: 'success', text: response.message || 'Profile updated successfully' });
     } catch (error) {
       let errorMessage = 'Something went wrong. Please try again.';
 
@@ -106,7 +136,7 @@ export default function ProfileScreen({ navigation }) {
     try {
       setPasswordLoading(true);
       const response = await authService.changePassword({
-        current_password: currentPassword,
+        old_password: currentPassword,
         password: newPassword,
         password_confirmation: confirmPassword,
       });
@@ -131,6 +161,19 @@ export default function ProfileScreen({ navigation }) {
       setPasswordLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="dark" />
+        <Header title="Profile" navigation={navigation} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading profile...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -253,6 +296,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
   },
   scrollView: {
     flex: 1,
