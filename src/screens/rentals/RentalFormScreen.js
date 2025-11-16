@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Header from '../../components/Header';
 import rentalService from '../../services/rentalService';
 import vehicleService from '../../services/vehicleService';
@@ -33,6 +33,16 @@ const RentalFormScreen = ({ navigation, route }) => {
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [errors, setErrors] = useState({});
+
+  // Date picker states
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [startDate, setStartDate] = useState(
+    rental?.started_at ? new Date(rental.started_at) : new Date()
+  );
+  const [endDate, setEndDate] = useState(
+    rental?.ended_at ? new Date(rental.ended_at) : new Date()
+  );
 
   useEffect(() => {
     loadInitialData();
@@ -59,6 +69,49 @@ const RentalFormScreen = ({ navigation, route }) => {
     if (errors[field]) {
       setErrors({ ...errors, [field]: null });
     }
+  };
+
+  const formatDateToString = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}. ${day}, ${year}`;
+  };
+
+  const onStartDateChange = (event, selectedDate) => {
+    setShowStartDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setStartDate(selectedDate);
+      const formattedDate = formatDateToString(selectedDate);
+      handleChange('started_at', formattedDate);
+    }
+  };
+
+  const onEndDateChange = (event, selectedDate) => {
+    setShowEndDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setEndDate(selectedDate);
+      const formattedDate = formatDateToString(selectedDate);
+      handleChange('ended_at', formattedDate);
+    }
+  };
+
+  const clearStartDate = () => {
+    handleChange('started_at', '');
+  };
+
+  const clearEndDate = () => {
+    handleChange('ended_at', '');
   };
 
   const validateForm = () => {
@@ -174,7 +227,7 @@ const RentalFormScreen = ({ navigation, route }) => {
                   <Picker.Item
                     key={customer.id}
                     label={customer.name}
-                    value={customer.id.toString()}
+                    value={customer.id}
                   />
                 ))}
               </Picker>
@@ -183,26 +236,48 @@ const RentalFormScreen = ({ navigation, route }) => {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
-            <TextInput
-              style={[styles.input, errors.started_at && styles.inputError]}
-              value={formData.started_at}
-              onChangeText={(value) => handleChange('started_at', value)}
-              placeholder="2025-11-15 (optional)"
-              placeholderTextColor="#999"
-            />
+            <Text style={styles.label}>Start Date</Text>
+            <View style={styles.datePickerRow}>
+              <TouchableOpacity
+                style={[styles.dateButton, errors.started_at && styles.inputError]}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Text style={formData.started_at ? styles.dateText : styles.datePlaceholder}>
+                  {formData.started_at ? formatDateForDisplay(formData.started_at) : 'Select start date (optional)'}
+                </Text>
+              </TouchableOpacity>
+              {formData.started_at && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={clearStartDate}
+                >
+                  <Text style={styles.clearButtonText}>Clear</Text>
+                </TouchableOpacity>
+              )}
+            </View>
             {errors.started_at && <Text style={styles.errorText}>{errors.started_at}</Text>}
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
-            <TextInput
-              style={[styles.input, errors.ended_at && styles.inputError]}
-              value={formData.ended_at}
-              onChangeText={(value) => handleChange('ended_at', value)}
-              placeholder="2025-11-20 (optional)"
-              placeholderTextColor="#999"
-            />
+            <Text style={styles.label}>End Date</Text>
+            <View style={styles.datePickerRow}>
+              <TouchableOpacity
+                style={[styles.dateButton, errors.ended_at && styles.inputError]}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Text style={formData.ended_at ? styles.dateText : styles.datePlaceholder}>
+                  {formData.ended_at ? formatDateForDisplay(formData.ended_at) : 'Select end date (optional)'}
+                </Text>
+              </TouchableOpacity>
+              {formData.ended_at && (
+                <TouchableOpacity
+                  style={styles.clearButton}
+                  onPress={clearEndDate}
+                >
+                  <Text style={styles.clearButtonText}>Clear</Text>
+                </TouchableOpacity>
+              )}
+            </View>
             {errors.ended_at && <Text style={styles.errorText}>{errors.ended_at}</Text>}
           </View>
 
@@ -217,6 +292,24 @@ const RentalFormScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {showStartDatePicker && (
+        <DateTimePicker
+          value={startDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onStartDateChange}
+        />
+      )}
+
+      {showEndDatePicker && (
+        <DateTimePicker
+          value={endDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={onEndDateChange}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -282,10 +375,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    overflow: 'hidden',
+    justifyContent: 'center',
+    height: 56,
   },
   picker: {
-    height: 50,
+    height: 56,
+    marginTop: Platform.OS === 'android' ? -4 : 0,
+    marginBottom: Platform.OS === 'android' ? -4 : 0,
   },
   submitButton: {
     backgroundColor: '#007AFF',
@@ -300,6 +396,39 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  datePickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dateButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  datePlaceholder: {
+    fontSize: 16,
+    color: '#999',
+  },
+  clearButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#ff3b30',
+    borderRadius: 8,
+  },
+  clearButtonText: {
+    color: '#fff',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -73,7 +73,7 @@ const RentalsListScreen = ({ navigation }) => {
 
   const renderRental = (rental) => {
     const vehicleInfo = rental.vehicle
-      ? `${rental.vehicle.car_type} (${rental.vehicle.plate_no})`
+      ? `${rental.vehicle.plate_no} - ${rental.vehicle.car_type}`
       : 'Unknown Vehicle';
     const customerName = rental.customer?.name || 'Unknown Customer';
 
@@ -94,8 +94,8 @@ const RentalsListScreen = ({ navigation }) => {
             </TouchableOpacity>
           }
         />
-        <CardRow label="Started At" value={formatDate(rental.started_at)} />
-        <CardRow label="Ended At" value={formatDate(rental.ended_at)} />
+        <CardRow label="Start Date" value={rental.start_date} />
+        <CardRow label="End Date" value={rental.end_date} />
       </Card>
     );
   };

@@ -157,7 +157,7 @@ const RentalDetailScreen = ({ navigation, route }) => {
   }
 
   const vehicleInfo = rental.vehicle
-    ? `${rental.vehicle.make} ${rental.vehicle.model} (${rental.vehicle.plate_number})`
+    ? `${rental.vehicle.plate_no} - ${rental.vehicle.car_type}`
     : 'Unknown Vehicle';
 
   return (
@@ -168,11 +168,9 @@ const RentalDetailScreen = ({ navigation, route }) => {
         navigation={navigation}
         showBackButton={true}
         rightElement={
-          rental.status === 'pending' && (
-            <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
-          )
+          <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
         }
       />
 
@@ -180,159 +178,25 @@ const RentalDetailScreen = ({ navigation, route }) => {
         <Card>
           <CardHeader
             title={vehicleInfo}
-            subtitle={`Rental #${rental.id}`}
-            rightElement={
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(rental.status) }]}>
-                <Text style={styles.statusText}>{rental.status}</Text>
-              </View>
-            }
+            subtitle={`ID: ${rental.id}`}
           />
 
           <CardSection>
             <Text style={styles.sectionTitle}>Customer Information</Text>
             <CardRow label="Name" value={rental.customer?.name || 'N/A'} />
-            <CardRow label="Email" value={rental.customer?.email || 'N/A'} />
+            <CardRow label="Contact" value={rental.customer?.contact_no || 'N/A'} />
           </CardSection>
 
           <CardSection style={styles.section}>
             <Text style={styles.sectionTitle}>Rental Period</Text>
-            <CardRow label="Start Date" value={formatDate(rental.start_date)} />
-            <CardRow label="End Date" value={formatDate(rental.end_date)} />
-            <CardRow label="Actual Start" value={formatDate(rental.actual_start_date)} />
-            <CardRow label="Actual End" value={formatDate(rental.actual_end_date)} />
+            <CardRow label="Start Date" value={rental.start_date} />
+            <CardRow label="End Date" value={rental.end_date} />
           </CardSection>
-
-          <CardSection style={styles.section}>
-            <Text style={styles.sectionTitle}>Financial Details</Text>
-            <CardRow label="Daily Rate" value={`$${rental.daily_rate}`} />
-            <CardRow label="Total Amount" value={`$${rental.total_amount}`} />
-            <CardRow label="Deposit" value={`$${rental.deposit}`} />
-          </CardSection>
-
-          <CardSection style={styles.section}>
-            <Text style={styles.sectionTitle}>Vehicle Condition</Text>
-            <CardRow
-              label="Odometer Start"
-              value={rental.odometer_start ? `${rental.odometer_start} km` : 'N/A'}
-            />
-            <CardRow
-              label="Odometer End"
-              value={rental.odometer_end ? `${rental.odometer_end} km` : 'N/A'}
-            />
-            <CardRow label="Fuel Start" value={rental.fuel_level_start || 'N/A'} />
-            <CardRow label="Fuel End" value={rental.fuel_level_end || 'N/A'} />
-          </CardSection>
-
-          {rental.notes && (
-            <CardSection style={styles.section}>
-              <Text style={styles.sectionTitle}>Notes</Text>
-              <Text style={styles.notesText}>{rental.notes}</Text>
-            </CardSection>
-          )}
         </Card>
 
-        {/* Start Rental Section */}
-        {rental.status === 'pending' && (
-          <Card style={styles.actionCard}>
-            <Text style={styles.actionTitle}>Start Rental</Text>
-            <Text style={styles.actionDescription}>
-              Enter the starting odometer reading to begin the rental.
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={odometerStart}
-              onChangeText={setOdometerStart}
-              placeholder="Odometer reading (km)"
-              placeholderTextColor="#999"
-              keyboardType="numeric"
-            />
-            <TouchableOpacity
-              style={[styles.actionButton, styles.startButton, actionLoading && styles.actionButtonDisabled]}
-              onPress={handleStartRental}
-              disabled={actionLoading}
-            >
-              <Text style={styles.actionButtonText}>
-                {actionLoading ? 'Starting...' : 'Start Rental'}
-              </Text>
-            </TouchableOpacity>
-          </Card>
-        )}
-
-        {/* End Rental Section */}
-        {rental.status === 'active' && (
-          <Card style={styles.actionCard}>
-            <Text style={styles.actionTitle}>End Rental</Text>
-            <Text style={styles.actionDescription}>
-              Complete the rental by recording the final vehicle condition.
-            </Text>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Odometer Reading (km) *</Text>
-              <TextInput
-                style={styles.input}
-                value={odometerEnd}
-                onChangeText={setOdometerEnd}
-                placeholder="Enter ending odometer"
-                placeholderTextColor="#999"
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Fuel Level *</Text>
-              <View style={styles.fuelLevelContainer}>
-                {['empty', '1/4', '1/2', '3/4', 'full'].map((level) => (
-                  <TouchableOpacity
-                    key={level}
-                    style={[
-                      styles.fuelButton,
-                      fuelLevel === level && styles.fuelButtonActive,
-                    ]}
-                    onPress={() => setFuelLevel(level)}
-                  >
-                    <Text
-                      style={[
-                        styles.fuelButtonText,
-                        fuelLevel === level && styles.fuelButtonTextActive,
-                      ]}
-                    >
-                      {level}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Condition Notes</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={conditionNotes}
-                onChangeText={setConditionNotes}
-                placeholder="Any damage or issues?"
-                placeholderTextColor="#999"
-                multiline
-                numberOfLines={3}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.actionButton, styles.endButton, actionLoading && styles.actionButtonDisabled]}
-              onPress={handleEndRental}
-              disabled={actionLoading}
-            >
-              <Text style={styles.actionButtonText}>
-                {actionLoading ? 'Ending...' : 'End Rental'}
-              </Text>
-            </TouchableOpacity>
-          </Card>
-        )}
-
-        {rental.status === 'pending' && (
-          <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
-            <Text style={styles.deleteButtonText}>Delete Rental</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
+          <Text style={styles.deleteButtonText}>Delete Rental</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
