@@ -34,7 +34,7 @@ const DeviceDetailScreen = ({ navigation, route }) => {
   const handleDelete = () => {
     Alert.alert(
       'Delete Device',
-      `Are you sure you want to delete device ${device.device_id}?`,
+      `Are you sure you want to delete device ${device.device}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -52,17 +52,6 @@ const DeviceDetailScreen = ({ navigation, route }) => {
         },
       ]
     );
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active':
-        return '#34C759';
-      case 'inactive':
-        return '#FF9500';
-      default:
-        return '#666';
-    }
   };
 
   if (loading) {
@@ -97,21 +86,12 @@ const DeviceDetailScreen = ({ navigation, route }) => {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <Card>
           <CardHeader
-            title={device.device_id}
+            title={device.device || 'Unknown Device'}
             subtitle={`ID: ${device.id}`}
-            rightElement={
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(device.status) }]}>
-                <Text style={styles.statusText}>{device.status}</Text>
-              </View>
-            }
           />
 
           <CardSection>
-            <CardRow label="Device Type" value={device.type} />
-            <CardRow label="Status" value={device.status} />
-          </CardSection>
-
-          <CardSection>
+            <CardRow label="Device Identifier" value={device.device} />
             <CardRow
               label="Created"
               value={new Date(device.created_at).toLocaleDateString()}
@@ -160,17 +140,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
   },
   deleteButton: {
     backgroundColor: '#ff3b30',

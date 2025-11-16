@@ -1,27 +1,11 @@
 // Base API configuration
 // TODO: Update this URL to your actual backend server URL
 // const API_BASE_URL = 'http://localhost:8031/api';
-const API_BASE_URL = 'http://192.168.8.183:8031/api';
+// const API_BASE_URL = 'http://192.168.8.183:8031/api';
+const API_BASE_URL = 'https://tracker.fireflyelectric.dev/api';
 
-// Simple storage helper for web and mobile
-const storage = {
-  async setItem(key, value) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(key, value);
-    }
-  },
-  async getItem(key) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      return window.localStorage.getItem(key);
-    }
-    return null;
-  },
-  async removeItem(key) {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.removeItem(key);
-    }
-  },
-};
+// Use AsyncStorage for React Native persistent storage
+import storage from '@react-native-async-storage/async-storage';
 
 class ApiService {
   constructor() {
@@ -41,9 +25,11 @@ class ApiService {
   }
 
   async setToken(token) {
+    console.log('[apiService] setToken called. Saving token to state and storage.');
     this.token = token;
     this.tokenInitialized = true;
     await storage.setItem('authToken', token);
+    console.log('[apiService] Token successfully saved to AsyncStorage.');
   }
 
   getToken() {
@@ -87,6 +73,7 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Don't log errors - let the caller handle them
         throw {
           status: response.status,
           message: data.message || 'An error occurred',
@@ -96,9 +83,12 @@ class ApiService {
 
       return data;
     } catch (error) {
+      // If error already has a status, it's from our response handler above
       if (error.status) {
         throw error;
       }
+      // Only network errors should be logged here
+      console.error('[API] Network error:', error);
       throw {
         status: 0,
         message: 'Network error. Please check your connection.',

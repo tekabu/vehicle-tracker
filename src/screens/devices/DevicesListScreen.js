@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../components/Header';
 import Card, { CardHeader, CardRow } from '../../components/Card';
 import deviceService from '../../services/deviceService';
@@ -10,6 +11,13 @@ const DevicesListScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Reload devices when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadDevices();
+    }, [])
+  );
+
   useEffect(() => {
     loadDevices();
   }, []);
@@ -17,10 +25,17 @@ const DevicesListScreen = ({ navigation }) => {
   const loadDevices = async () => {
     try {
       setLoading(true);
+      console.log('[DevicesListScreen] Loading devices...');
       const data = await deviceService.getAll();
-      setDevices(data);
+      console.log('[DevicesListScreen] Received data:', JSON.stringify(data, null, 2));
+      // Ensure data is always an array
+      const devicesArray = Array.isArray(data) ? data : [];
+      console.log('[DevicesListScreen] Setting devices array with length:', devicesArray.length);
+      setDevices(devicesArray);
     } catch (error) {
+      console.error('[DevicesListScreen] Error loading devices:', error);
       Alert.alert('Error', error.message || 'Failed to load devices');
+      setDevices([]); // Set empty array on error
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -32,10 +47,10 @@ const DevicesListScreen = ({ navigation }) => {
     loadDevices();
   };
 
-  const handleDelete = (id, deviceId) => {
+  const handleDelete = (id, deviceName) => {
     Alert.alert(
       'Delete Device',
-      `Are you sure you want to delete device ${deviceId}?`,
+      `Are you sure you want to delete device ${deviceName}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -55,37 +70,21 @@ const DevicesListScreen = ({ navigation }) => {
     );
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active':
-        return '#34C759';
-      case 'inactive':
-        return '#FF9500';
-      default:
-        return '#666';
-    }
-  };
-
   const renderDevice = (device) => (
     <Card
       key={device.id}
       onPress={() => navigation.navigate('DeviceDetail', { deviceId: device.id })}
     >
       <CardHeader
-        title={device.device_id}
-        subtitle={device.type}
+        title={device.device || 'Unknown Device'}
+        subtitle={`ID: ${device.id}`}
         rightElement={
-          <View style={styles.statusBadgeContainer}>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(device.status) }]}>
-              <Text style={styles.statusText}>{device.status}</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => handleDelete(device.id, device.device_id)}
-              style={styles.deleteButton}
-            >
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => handleDelete(device.id, device.device)}
+            style={styles.deleteButton}
+          >
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
         }
       />
     </Card>
@@ -184,21 +183,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  statusBadgeContainer: {
-    alignItems: 'flex-end',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
   },
   deleteButton: {
     backgroundColor: '#ff3b30',

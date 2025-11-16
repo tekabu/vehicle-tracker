@@ -1,10 +1,15 @@
 import 'react-native-gesture-handler';
 import React, { useState } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert, Platform, LogBox } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import authService from './src/services/authService';
+
+// Suppress specific warnings/errors that we handle gracefully
+LogBox.ignoreLogs([
+  'Non-serializable values were found in the navigation state',
+]);
 
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';

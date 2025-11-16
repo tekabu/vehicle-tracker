@@ -19,9 +19,7 @@ const DeviceFormScreen = ({ navigation, route }) => {
   const isEditing = !!device;
 
   const [formData, setFormData] = useState({
-    device_id: device?.device_id || '',
-    type: device?.type || '',
-    status: device?.status || 'active',
+    device: device?.device || '',
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -36,12 +34,8 @@ const DeviceFormScreen = ({ navigation, route }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.device_id.trim()) {
-      newErrors.device_id = 'Device ID is required';
-    }
-
-    if (!formData.type.trim()) {
-      newErrors.type = 'Device type is required';
+    if (!formData.device.trim()) {
+      newErrors.device = 'Device identifier is required';
     }
 
     setErrors(newErrors);
@@ -55,19 +49,26 @@ const DeviceFormScreen = ({ navigation, route }) => {
 
     try {
       setLoading(true);
+      console.log('[DeviceFormScreen] Submitting form data:', formData);
       if (isEditing) {
-        await deviceService.update(device.id, formData);
+        const result = await deviceService.update(device.id, formData);
+        console.log('[DeviceFormScreen] Update result:', result);
         Alert.alert('Success', 'Device updated successfully');
       } else {
-        await deviceService.create(formData);
+        const result = await deviceService.create(formData);
+        console.log('[DeviceFormScreen] Create result:', result);
         Alert.alert('Success', 'Device created successfully');
       }
       navigation.goBack();
     } catch (error) {
-      if (error.errors) {
+      // Handle validation errors (422) and other errors
+      console.log('[DeviceFormScreen] Caught error:', error);
+      if (error.errors && Object.keys(error.errors).length > 0) {
         setErrors(error.errors);
       }
+      // Show user-friendly error message
       Alert.alert('Error', error.message || 'Failed to save device');
+      // Don't re-throw - error is handled
     } finally {
       setLoading(false);
     }
@@ -87,66 +88,16 @@ const DeviceFormScreen = ({ navigation, route }) => {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <View style={styles.form}>
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Device ID *</Text>
+            <Text style={styles.label}>Device Identifier *</Text>
             <TextInput
-              style={[styles.input, errors.device_id && styles.inputError]}
-              value={formData.device_id}
-              onChangeText={(value) => handleChange('device_id', value)}
-              placeholder="Enter device ID (e.g., DEV-001)"
+              style={[styles.input, errors.device && styles.inputError]}
+              value={formData.device}
+              onChangeText={(value) => handleChange('device', value)}
+              placeholder="Enter device identifier (e.g., DEV-001)"
               placeholderTextColor="#999"
               autoCapitalize="characters"
             />
-            {errors.device_id && <Text style={styles.errorText}>{errors.device_id}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Device Type *</Text>
-            <TextInput
-              style={[styles.input, errors.type && styles.inputError]}
-              value={formData.type}
-              onChangeText={(value) => handleChange('type', value)}
-              placeholder="Enter device type (e.g., GPS Tracker)"
-              placeholderTextColor="#999"
-            />
-            {errors.type && <Text style={styles.errorText}>{errors.type}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Status *</Text>
-            <View style={styles.statusContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.statusButton,
-                  formData.status === 'active' && styles.statusButtonActive,
-                ]}
-                onPress={() => handleChange('status', 'active')}
-              >
-                <Text
-                  style={[
-                    styles.statusButtonText,
-                    formData.status === 'active' && styles.statusButtonTextActive,
-                  ]}
-                >
-                  Active
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.statusButton,
-                  formData.status === 'inactive' && styles.statusButtonActive,
-                ]}
-                onPress={() => handleChange('status', 'inactive')}
-              >
-                <Text
-                  style={[
-                    styles.statusButtonText,
-                    formData.status === 'inactive' && styles.statusButtonTextActive,
-                  ]}
-                >
-                  Inactive
-                </Text>
-              </TouchableOpacity>
-            </View>
+            {errors.device && <Text style={styles.errorText}>{errors.device}</Text>}
           </View>
 
           <TouchableOpacity
@@ -211,31 +162,6 @@ const styles = StyleSheet.create({
     color: '#ff3b30',
     fontSize: 12,
     marginTop: 4,
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statusButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  statusButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  statusButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
-  },
-  statusButtonTextActive: {
-    color: '#fff',
   },
   submitButton: {
     backgroundColor: '#007AFF',

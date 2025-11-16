@@ -4,6 +4,7 @@ Base URL: `http://localhost:8031/api`
 
 ## Table of Contents
 - [Authentication](#authentication)
+- [Email Verification](#email-verification)
 - [Password Reset](#password-reset)
 - [User Management](#user-management)
 - [Devices](#devices)
@@ -29,20 +30,24 @@ curl -X POST http://localhost:8031/api/register \
   }'
 ```
 
-**Success Response (201):**
+**Success Response (200):**
 ```json
 {
-  "message": "User registered successfully",
+  "status": true,
+  "message": "User registered successfully. Please verify your email.",
+  "action": "email_verification",
   "user": {
     "id": 1,
     "name": "John Doe",
     "email": "john@example.com",
+    "email_verified_at": null,
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z"
-  },
-  "token": "1|abc123def456ghi789jkl012mno345pqr678stu901vwx234yz"
+  }
 }
 ```
+
+**Note:** After registration, an OTP is automatically sent to the user's email for verification. The user must verify their email before they can login.
 
 **Error Response (422 - Validation Error):**
 ```json
@@ -82,24 +87,36 @@ curl -X POST http://localhost:8031/api/login \
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Login successful",
+  "access_token": "2|xyz789abc456def123ghi890jkl567mno234pqr901stu678vwx",
+  "token_type": "Bearer",
   "user": {
     "id": 1,
     "name": "John Doe",
-    "email": "john@example.com",
-    "created_at": "2025-11-16T10:30:00.000000Z",
-    "updated_at": "2025-11-16T10:30:00.000000Z"
-  },
-  "token": "2|xyz789abc456def123ghi890jkl567mno234pqr901stu678vwx"
+    "email": "john@example.com"
+  }
 }
 ```
 
 **Error Response (401 - Invalid Credentials):**
 ```json
 {
+  "status": false,
   "message": "Invalid credentials"
 }
 ```
+
+**Error Response (403 - Email Not Verified):**
+```json
+{
+  "status": false,
+  "message": "Please verify your email address to continue",
+  "action": "email_verification"
+}
+```
+
+**Note:** If email is not verified, the app should allow the user to request a new OTP using the `/api/otp` endpoint.
 
 **Error Response (429 - Rate Limit):**
 ```json
@@ -119,7 +136,8 @@ curl -X POST http://localhost:8031/api/logout \
 **Success Response (200):**
 ```json
 {
-  "message": "Logged out successfully"
+  "status": true,
+  "message": "Logout successful"
 }
 ```
 
@@ -132,9 +150,13 @@ curl -X POST http://localhost:8031/api/logout \
 
 ---
 
-## Password Reset
+## Email Verification
 
-### Generate OTP
+After registering, users must verify their email address before they can login. This section covers the email verification flow.
+
+### Request Email Verification OTP
+This endpoint can be used to request a new OTP for email verification (e.g., if the initial OTP expired or the user didn't receive it).
+
 ```bash
 curl -X POST http://localhost:8031/api/otp \
   -H "Content-Type: application/json" \
@@ -147,14 +169,16 @@ curl -X POST http://localhost:8031/api/otp \
 **Success Response (200):**
 ```json
 {
-  "message": "OTP sent to your email"
+  "status": true,
+  "message": "OTP successfully sent to jo**@example.com"
 }
 ```
 
-**Error Response (404 - User Not Found):**
+**Error Response (400 - User Not Found):**
 ```json
 {
-  "message": "User not found"
+  "status": false,
+  "message": "The email field is required."
 }
 ```
 
@@ -165,7 +189,104 @@ curl -X POST http://localhost:8031/api/otp \
 }
 ```
 
-### Validate OTP
+### Verify Email with OTP
+Once the user receives the OTP via email, they can verify their email address using this endpoint.
+
+```bash
+curl -X POST http://localhost:8031/api/otp/validate \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "otp": "123456",
+    "type": "email_verification"
+  }'
+```
+
+**Success Response (200):**
+```json
+{
+  "status": true,
+  "message": "Email verified successfully. You can now login."
+}
+```
+
+**Error Response (401 - Invalid OTP):**
+```json
+{
+  "status": false,
+  "message": "Invalid or expired OTP"
+}
+```
+
+**Error Response (400 - User Not Found):**
+```json
+{
+  "status": false,
+  "message": "The selected email is invalid."
+}
+```
+
+**Flow:**
+1. User registers → receives OTP email automatically
+2. User submits OTP with `type=email_verification`
+3. Email is verified (`email_verified_at` is set)
+4. User can now login successfully
+
+---
+
+## Password Reset
+
+The password reset flow is used when users forget their password. This is different from email verification.
+
+### Generate OTP for Password Reset
+```bash
+curl -X POST http://localhost:8031/api/otp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "email": "john@example.com"
+  }'
+```
+
+**Success Response (200):**
+```json
+{
+  "status": true,
+  "message": "OTP successfully sent to jo**@example.com"
+}
+```
+
+**Error Response (400 - User Not Found):**
+```json
+{
+  "status": false,
+  "message": "The selected email is invalid."
+}
+```
+
+**Error Response (429 - Rate Limit):**
+```json
+{
+  "message": "Too Many Attempts."
+}
+```
+
+### Validate OTP for Password Reset
+**Note:** The `type` parameter is optional and defaults to `password_reset`. For password reset flow, you can omit it or explicitly set it to `password_reset`.
+
+```bash
+curl -X POST http://localhost:8031/api/otp/validate \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "otp": "123456",
+    "type": "password_reset"
+  }'
+```
+
+Or simply omit the `type` parameter (defaults to password_reset):
 ```bash
 curl -X POST http://localhost:8031/api/otp/validate \
   -H "Content-Type: application/json" \
@@ -179,33 +300,39 @@ curl -X POST http://localhost:8031/api/otp/validate \
 **Success Response (200):**
 ```json
 {
-  "message": "OTP validated successfully",
-  "reset_token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6"
+  "status": true,
+  "message": "OTP is valid. You can now reset your password.",
+  "reset_token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
+  "expires_in": 900
 }
 ```
 
-**Error Response (400 - Invalid OTP):**
+**Error Response (401 - Invalid OTP):**
 ```json
 {
+  "status": false,
   "message": "Invalid or expired OTP"
 }
 ```
 
-**Error Response (404 - User Not Found):**
+**Error Response (400 - User Not Found):**
 ```json
 {
-  "message": "User not found"
+  "status": false,
+  "message": "The selected email is invalid."
 }
 ```
 
 ### Reset Password
+After receiving the `reset_token` from the OTP validation step, use it to reset the password.
+
 ```bash
 curl -X POST http://localhost:8031/api/password/reset \
   -H "Content-Type: application/json" \
   -H "Accept: application/json" \
   -d '{
     "email": "john@example.com",
-    "token": "reset-token-from-validation",
+    "reset_token": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
     "password": "NewSecurePassword123!",
     "password_confirmation": "NewSecurePassword123!"
   }'
@@ -214,32 +341,138 @@ curl -X POST http://localhost:8031/api/password/reset \
 **Success Response (200):**
 ```json
 {
-  "message": "Password reset successfully"
+  "status": true,
+  "message": "Password reset successfully. Please login with your new password."
 }
 ```
 
-**Error Response (400 - Invalid Token):**
+**Error Response (401 - Invalid Token):**
 ```json
 {
-  "message": "Invalid or expired reset token"
+  "status": false,
+  "message": "Invalid reset token"
 }
 ```
 
-**Error Response (422 - Validation Error):**
+**Error Response (401 - Expired Token):**
 ```json
 {
-  "message": "The password field confirmation does not match.",
-  "errors": {
-    "password": [
-      "The password field confirmation does not match."
-    ]
-  }
+  "status": false,
+  "message": "Reset token has expired. Please request a new OTP."
 }
 ```
+
+**Error Response (400 - Validation Error):**
+```json
+{
+  "status": false,
+  "message": "The password field confirmation does not match."
+}
+```
+
+**Password Reset Flow:**
+1. User requests OTP via `/api/otp`
+2. User validates OTP via `/api/otp/validate` (without `type` or with `type=password_reset`)
+3. User receives `reset_token` (valid for 15 minutes)
+4. User submits new password with `reset_token` to `/api/password/reset`
+5. All user sessions are invalidated for security
 
 ---
 
 ## User Management
+
+### Get User Profile
+```bash
+curl -X GET http://localhost:8031/api/profile \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+**Success Response (200):**
+```json
+{
+  "status": true,
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "email_verified_at": null,
+    "created_at": "2025-11-16T10:30:00.000000Z",
+    "updated_at": "2025-11-16T10:30:00.000000Z"
+  }
+}
+```
+
+**Error Response (401 - Unauthenticated):**
+```json
+{
+  "message": "Unauthenticated."
+}
+```
+
+### Update User Profile
+```bash
+curl -X PUT http://localhost:8031/api/profile \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "name": "John Updated",
+    "email": "john.updated@example.com"
+  }'
+```
+
+**Note:** You can also use PATCH method and update fields individually:
+```bash
+# Update only name
+curl -X PATCH http://localhost:8031/api/profile \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "name": "John Updated"
+  }'
+
+# Update only email
+curl -X PATCH http://localhost:8031/api/profile \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "email": "john.updated@example.com"
+  }'
+```
+
+**Success Response (200):**
+```json
+{
+  "status": true,
+  "message": "Profile updated successfully",
+  "user": {
+    "id": 1,
+    "name": "John Updated",
+    "email": "john.updated@example.com",
+    "email_verified_at": null,
+    "created_at": "2025-11-16T10:30:00.000000Z",
+    "updated_at": "2025-11-16T15:45:00.000000Z"
+  }
+}
+```
+
+**Error Response (400 - Validation Error):**
+```json
+{
+  "status": false,
+  "message": "The email has already been taken."
+}
+```
+
+**Error Response (401 - Unauthenticated):**
+```json
+{
+  "message": "Unauthenticated."
+}
+```
 
 ### Change Password (Authenticated)
 ```bash
@@ -248,7 +481,7 @@ curl -X POST http://localhost:8031/api/password/change \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "current_password": "OldPassword123!",
+    "old_password": "OldPassword123!",
     "password": "NewPassword123!",
     "password_confirmation": "NewPassword123!"
   }'
@@ -257,26 +490,24 @@ curl -X POST http://localhost:8031/api/password/change \
 **Success Response (200):**
 ```json
 {
+  "status": true,
   "message": "Password changed successfully"
 }
 ```
 
-**Error Response (400 - Incorrect Current Password):**
+**Error Response (401 - Incorrect Old Password):**
 ```json
 {
-  "message": "Current password is incorrect"
+  "status": false,
+  "message": "Old password is incorrect"
 }
 ```
 
-**Error Response (422 - Validation Error):**
+**Error Response (400 - Validation Error):**
 ```json
 {
-  "message": "The password field confirmation does not match.",
-  "errors": {
-    "password": [
-      "The password field confirmation does not match."
-    ]
-  }
+  "status": false,
+  "message": "The password field confirmation does not match."
 }
 ```
 
@@ -297,17 +528,13 @@ curl -X GET http://localhost:8031/api/devices \
   "data": [
     {
       "id": 1,
-      "device_id": "DEV-001",
-      "type": "GPS Tracker",
-      "status": "active",
+      "device": "DEV-001",
       "created_at": "2025-11-16T10:30:00.000000Z",
       "updated_at": "2025-11-16T10:30:00.000000Z"
     },
     {
       "id": 2,
-      "device_id": "DEV-002",
-      "type": "GPS Tracker Pro",
-      "status": "inactive",
+      "device": "DEV-002",
       "created_at": "2025-11-16T11:00:00.000000Z",
       "updated_at": "2025-11-16T11:00:00.000000Z"
     }
@@ -334,9 +561,7 @@ curl -X GET http://localhost:8031/api/devices/1 \
 {
   "data": {
     "id": 1,
-    "device_id": "DEV-001",
-    "type": "GPS Tracker",
-    "status": "active",
+    "device": "DEV-001",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z"
   }
@@ -357,9 +582,7 @@ curl -X POST http://localhost:8031/api/devices \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "device_id": "DEV-001",
-    "type": "GPS Tracker",
-    "status": "active"
+    "device": "DEV-001"
   }'
 ```
 
@@ -369,9 +592,7 @@ curl -X POST http://localhost:8031/api/devices \
   "message": "Device created successfully",
   "data": {
     "id": 1,
-    "device_id": "DEV-001",
-    "type": "GPS Tracker",
-    "status": "active",
+    "device": "DEV-001",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T10:30:00.000000Z"
   }
@@ -381,10 +602,10 @@ curl -X POST http://localhost:8031/api/devices \
 **Error Response (422 - Validation Error):**
 ```json
 {
-  "message": "The device id has already been taken.",
+  "message": "The device has already been taken.",
   "errors": {
-    "device_id": [
-      "The device id has already been taken."
+    "device": [
+      "The device has already been taken."
     ]
   }
 }
@@ -397,9 +618,7 @@ curl -X PUT http://localhost:8031/api/devices/1 \
   -H "Accept: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE" \
   -d '{
-    "device_id": "DEV-001-UPDATED",
-    "type": "GPS Tracker Pro",
-    "status": "active"
+    "device": "DEV-001-UPDATED"
   }'
 ```
 
@@ -409,9 +628,7 @@ curl -X PUT http://localhost:8031/api/devices/1 \
   "message": "Device updated successfully",
   "data": {
     "id": 1,
-    "device_id": "DEV-001-UPDATED",
-    "type": "GPS Tracker Pro",
-    "status": "active",
+    "device": "DEV-001-UPDATED",
     "created_at": "2025-11-16T10:30:00.000000Z",
     "updated_at": "2025-11-16T12:00:00.000000Z"
   }
@@ -645,9 +862,7 @@ curl -X GET http://localhost:8031/api/vehicles \
       "updated_at": "2025-11-16T10:30:00.000000Z",
       "device": {
         "id": 1,
-        "device_id": "DEV-001",
-        "type": "GPS Tracker",
-        "status": "active"
+        "device": "DEV-001"
       }
     }
   ]
@@ -1168,12 +1383,12 @@ curl -X DELETE http://localhost:8031/api/rentals/1 \
 
 ### Get Location (GPS Device Endpoint)
 ```bash
-curl -X GET "http://localhost:8031/api/location?device_id=DEV-001&lat=40.7128&lng=-74.0060&speed=45&heading=90&altitude=10" \
+curl -X GET "http://localhost:8031/api/location?device=DEV-001&lat=40.7128&lng=-74.0060&speed=45&heading=90&altitude=10" \
   -H "Accept: application/json"
 ```
 
 **Query Parameters:**
-- `device_id` (required): Device identifier
+- `device` (required): Device identifier
 - `lat` (required): Latitude
 - `lng` (required): Longitude
 - `speed` (optional): Speed in km/h
@@ -1209,10 +1424,10 @@ curl -X GET "http://localhost:8031/api/location?device_id=DEV-001&lat=40.7128&ln
 **Error Response (422 - Validation Error):**
 ```json
 {
-  "message": "The device id field is required.",
+  "message": "The device field is required.",
   "errors": {
-    "device_id": [
-      "The device id field is required."
+    "device": [
+      "The device field is required."
     ]
   }
 }
