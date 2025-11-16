@@ -230,10 +230,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    overflow: 'hidden',
+    justifyContent: 'center',
+    height: 56,
   },
   picker: {
-    height: 50,
+    height: 56,
+    marginTop: Platform.OS === 'android' ? -4 : 0,
+    marginBottom: Platform.OS === 'android' ? -4 : 0,
   },
   submitButton: {
     backgroundColor: '#007AFF',
