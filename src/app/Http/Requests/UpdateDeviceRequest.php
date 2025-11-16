@@ -24,7 +24,7 @@ class UpdateDeviceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "tag" => "required|string|unique:devices,tag," . $this->route('device') . "|max:100",
+            "device" => "required|string|unique:devices,tag," . $this->route('device') . "|max:100",
         ];
     }
 

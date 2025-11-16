@@ -12,6 +12,6 @@ class Device extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'tag',
+        'device',
     ];
 }

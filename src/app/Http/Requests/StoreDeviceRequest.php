@@ -24,7 +24,7 @@ class StoreDeviceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "tag" => "required|string|unique:devices|max:100",
+            "device" => "required|string|unique:devices|max:100",
         ];
     }
 
