@@ -18,7 +18,7 @@ class RentalController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Rental::query();
+        $query = Rental::with(['customer', 'vehicle']);
 
         $includes = explode(',', $request->get('include', ''));
 
