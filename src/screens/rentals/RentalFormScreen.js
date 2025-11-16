@@ -227,7 +227,7 @@ const RentalFormScreen = ({ navigation, route }) => {
                   <Picker.Item
                     key={customer.id}
                     label={customer.name}
-                    value={customer.id}
+                    value={customer.id.toString()}
                   />
                 ))}
               </Picker>
