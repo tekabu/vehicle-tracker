@@ -1,8 +1,7 @@
 // Base API configuration
-// TODO: Update this URL to your actual backend server URL
-// const API_BASE_URL = 'http://localhost:8031/api';
-// const API_BASE_URL = 'http://192.168.8.183:8031/api';
-const API_BASE_URL = 'https://tracker.fireflyelectric.dev/api';
+// API_BASE_URL is loaded from environment variables (.env file)
+// For Expo, use process.env with the EXPO_PUBLIC_ prefix
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:8031/api';
 
 // Use AsyncStorage for React Native persistent storage
 import storage from '@react-native-async-storage/async-storage';
