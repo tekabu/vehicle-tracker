@@ -23,19 +23,23 @@ const VehicleTrackingScreen = ({ navigation, route }) => {
 
   const mapRef = useRef(null);
   const mqttClient = useRef(null);
+  const isConnecting = useRef(false);
 
   useEffect(() => {
     loadVehicle();
     return () => {
       // Cleanup MQTT connection on unmount
       if (mqttClient.current) {
-        mqttClient.current.end();
+        console.log('Cleaning up MQTT connection');
+        mqttClient.current.end(true);
+        mqttClient.current = null;
       }
+      isConnecting.current = false;
     };
   }, []);
 
   useEffect(() => {
-    if (vehicle && vehicle.device) {
+    if (vehicle && vehicle.device && !mqttClient.current && !isConnecting.current) {
       connectToMqtt();
     }
   }, [vehicle]);
@@ -60,7 +64,16 @@ const VehicleTrackingScreen = ({ navigation, route }) => {
   };
 
   const connectToMqtt = () => {
+    // Prevent multiple connections
+    if (isConnecting.current || mqttClient.current) {
+      console.log('Already connected or connecting, skipping...');
+      return;
+    }
+
     try {
+      isConnecting.current = true;
+      console.log('Initiating MQTT connection...');
+
       // MQTT broker configuration - using WebSocket for React Native compatibility
       const brokerUrl = 'ws://broker.emqx.io:8083/mqtt';
       const topic = 'tracker-A1b2C3d4E5f6G7h8I9j0KlMnOpQrStUvWxYzABCD';
@@ -181,8 +194,10 @@ const VehicleTrackingScreen = ({ navigation, route }) => {
 
   const handleReconnect = () => {
     if (mqttClient.current) {
-      mqttClient.current.end();
+      mqttClient.current.end(true);
+      mqttClient.current = null;
     }
+    isConnecting.current = false;
     connectToMqtt();
   };
 
