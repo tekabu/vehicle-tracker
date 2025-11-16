@@ -100,7 +100,8 @@ const RentalFormScreen = ({ navigation, route }) => {
 
   const onStartDateChange = (event, selectedDate) => {
     setShowStartDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
+    // Only update if user confirmed the date (not cancelled)
+    if (event.type === 'set' && selectedDate) {
       setStartDate(selectedDate);
       const formattedDate = formatDateToString(selectedDate);
       handleChange('started_at', formattedDate);
@@ -109,7 +110,8 @@ const RentalFormScreen = ({ navigation, route }) => {
 
   const onEndDateChange = (event, selectedDate) => {
     setShowEndDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
+    // Only update if user confirmed the date (not cancelled)
+    if (event.type === 'set' && selectedDate) {
       setEndDate(selectedDate);
       const formattedDate = formatDateToString(selectedDate);
       handleChange('ended_at', formattedDate);

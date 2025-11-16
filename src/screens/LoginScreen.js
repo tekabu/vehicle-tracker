@@ -13,8 +13,8 @@ import { StatusBar } from 'expo-status-bar';
 import authService from '../services/authService';
 
 export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('nino@gmail.com');
-  const [password, setPassword] = useState('12345678');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -50,6 +50,17 @@ export default function LoginScreen({ navigation }) {
         password: password,
       });
 
+      // Check if email verification is required
+      if (response.status === false && response.action === 'email_verification') {
+        // Navigate to OTP verification for email verification
+        setLoading(false);
+        navigation.navigate('OTPValidation', {
+          email: email.trim(),
+          type: 'email_verification',
+        });
+        return;
+      }
+
       // Login successful - response contains: message, user, token
       setMessage({ type: 'success', text: response.message || 'Login successful' });
 
@@ -58,6 +69,17 @@ export default function LoginScreen({ navigation }) {
         navigation.navigate('Main');
       }, 1500);
     } catch (error) {
+      // Check if this is an email verification required error
+      if (error.status === 403 && error.message && error.message.toLowerCase().includes('verify your email')) {
+        // Navigate to OTP verification for email verification
+        setLoading(false);
+        navigation.navigate('OTPValidation', {
+          email: email.trim(),
+          type: 'email_verification',
+        });
+        return;
+      }
+
       // Handle different error scenarios
       let errorMessage = 'Something went wrong. Please try again.';
 

@@ -1,10 +1,11 @@
 import 'react-native-gesture-handler';
-import React, { useState } from 'react';
-import { Alert, Platform, LogBox } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Alert, Platform, LogBox, ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import authService from './src/services/authService';
+import api from './src/services/api';
 
 // Suppress specific warnings/errors that we handle gracefully
 LogBox.ignoreLogs([
@@ -186,11 +187,49 @@ function DrawerNavigator({ navigation }) {
 }
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const token = await api.getToken();
+      if (token) {
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Main" component={DrawerNavigator} />
+        {isAuthenticated ? (
+          <>
+            <Stack.Screen name="Main" component={DrawerNavigator} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Main" component={DrawerNavigator} />
+          </>
+        )}
+
 
         {/* Auth Screens */}
         <Stack.Screen name="Register" component={RegisterScreen} />

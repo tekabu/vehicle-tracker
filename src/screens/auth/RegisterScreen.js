@@ -75,12 +75,15 @@ export default function RegisterScreen({ navigation }) {
         password_confirmation: passwordConfirmation,
       });
 
-      // Registration successful - response contains: message, user, token
-      setMessage({ type: 'success', text: response.message || 'User registered successfully' });
+      // Registration successful - navigate to OTP verification for email verification
+      setMessage({ type: 'success', text: response.message || 'Registration successful. Please verify your email.' });
 
-      // Navigate after a short delay to show the success message
+      // Navigate to OTP validation after a short delay
       setTimeout(() => {
-        navigation.navigate('Main');
+        navigation.navigate('OTPValidation', {
+          email: email.trim(),
+          type: 'email_verification',
+        });
       }, 1500);
     } catch (error) {
       // Handle different error scenarios

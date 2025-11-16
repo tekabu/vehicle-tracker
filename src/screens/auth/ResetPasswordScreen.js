@@ -45,7 +45,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
       setLoading(true);
       const response = await authService.resetPassword({
         email: email,
-        token: resetToken,
+        reset_token: resetToken,
         password: password,
         password_confirmation: confirmPassword,
       });
