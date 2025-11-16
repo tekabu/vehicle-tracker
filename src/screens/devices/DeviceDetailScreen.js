@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../components/Header';
 import Card, { CardHeader, CardRow, CardSection } from '../../components/Card';
 import deviceService from '../../services/deviceService';
@@ -9,6 +10,13 @@ const DeviceDetailScreen = ({ navigation, route }) => {
   const { deviceId } = route.params;
   const [device, setDevice] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Reload device when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadDevice();
+    }, [deviceId])
+  );
 
   useEffect(() => {
     loadDevice();
