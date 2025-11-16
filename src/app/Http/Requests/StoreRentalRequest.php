@@ -24,10 +24,10 @@ class StoreRentalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_id' => 'required|exists:customers,id',
-            'vehicle_id' => 'required|exists:vehicles,id',
+            "customer_id" => "required|exists:customers,id",
+            "vehicle_id" => "required|exists:vehicles,id",
             'started_at' => 'nullable|date_format:Y-m-d',
-            'ended_at' => 'nullable|date_format:Y-m-d|required_with:started_at|gte:started_at',
+            'ended_at' => 'nullable|date_format:Y-m-d|after_or_equal:started_at',
         ];
     }
 
