@@ -84,6 +84,7 @@ const DeviceDetailScreen = ({ navigation, route }) => {
       <Header
         title="Device Details"
         navigation={navigation}
+        showBackButton={true}
         rightElement={
           <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
             <Text style={styles.editButtonText}>Edit</Text>

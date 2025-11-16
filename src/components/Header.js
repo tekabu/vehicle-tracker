@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-const Header = ({ title, navigation, rightElement }) => {
+const Header = ({ title, navigation, rightElement, showBackButton = false }) => {
   const nav = useNavigation();
 
   const handleMenuPress = () => {
@@ -16,18 +16,35 @@ const Header = ({ title, navigation, rightElement }) => {
     }
   };
 
+  const handleBackPress = () => {
+    if (navigation?.goBack) {
+      navigation.goBack();
+    } else if (nav?.goBack) {
+      nav.goBack();
+    }
+  };
+
   return (
     <View style={styles.header}>
-      <TouchableOpacity
-        style={styles.menuButton}
-        onPress={handleMenuPress}
-      >
-        <View style={styles.menuIcon}>
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-          <View style={styles.menuLine} />
-        </View>
-      </TouchableOpacity>
+      {showBackButton ? (
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={handleBackPress}
+        >
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={handleMenuPress}
+        >
+          <View style={styles.menuIcon}>
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+          </View>
+        </TouchableOpacity>
+      )}
       <Text style={styles.headerTitle}>{title}</Text>
       {rightElement && <View style={styles.rightElement}>{rightElement}</View>}
     </View>
@@ -63,6 +80,15 @@ const styles = StyleSheet.create({
     height: 3,
     backgroundColor: '#333',
     borderRadius: 2,
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 15,
+  },
+  backButtonText: {
+    fontSize: 28,
+    color: '#007AFF',
+    fontWeight: '400',
   },
   headerTitle: {
     fontSize: 20,

@@ -83,6 +83,7 @@ const DeviceFormScreen = ({ navigation, route }) => {
       <Header
         title={isEditing ? 'Edit Device' : 'New Device'}
         navigation={navigation}
+        showBackButton={true}
       />
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
