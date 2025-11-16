@@ -214,6 +214,11 @@ eas build --platform android
 eas build --platform ios
 ```
 
+To build locally and create an .apk file, use:
+```bash
+eas build --platform android --profile preview --local
+```
+
 ## License
 
 [Add your license information here]
