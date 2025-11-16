@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Str;
 use DateTimeInterface;
 
 class User extends Authenticatable
@@ -51,5 +52,18 @@ class User extends Authenticatable
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->timezone('Asia/Manila')->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * Set the user's name, ensuring proper casing and spacing.
+     *
+     * @param  string  $value
+     * @return void
+     */
+    public function setNameAttribute(string $value): void
+    {
+        $name = trim($value);
+        $name = preg_replace('/\s+/', ' ', $name);
+        $this->attributes['name'] = Str::title($name);
     }
 }

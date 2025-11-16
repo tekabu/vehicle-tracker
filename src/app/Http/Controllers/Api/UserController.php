@@ -14,6 +14,7 @@ use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use Ichtrojan\Otp\Otp;
 use App\Mail\OtpMail;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -139,9 +140,9 @@ class UserController extends Controller
     {
         $user = $request->user();
 
-        // Update only the fields that are present in the request
         if ($request->has('name')) {
-            $user->name = $request->name;
+            // Trim, remove extra spaces, and title-case the name
+            $user->name = Str::title(preg_replace('/\s+/', ' ', trim($request->name)));
         }
 
         if ($request->has('email')) {
