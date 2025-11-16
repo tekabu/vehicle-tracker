@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../components/Header';
 import Card, { CardHeader, CardRow } from '../../components/Card';
 import rentalService from '../../services/rentalService';
@@ -14,13 +15,23 @@ const RentalsListScreen = ({ navigation }) => {
     loadRentals();
   }, []);
 
+  // Reload rentals when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadRentals();
+    }, [])
+  );
+
   const loadRentals = async () => {
     try {
       setLoading(true);
       const data = await rentalService.getAll();
-      setRentals(data);
+      // Ensure data is always an array
+      const rentalsArray = Array.isArray(data) ? data : [];
+      setRentals(rentalsArray);
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to load rentals');
+      setRentals([]); // Set empty array on error
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -55,28 +66,14 @@ const RentalsListScreen = ({ navigation }) => {
     );
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active':
-        return '#34C759';
-      case 'pending':
-        return '#FF9500';
-      case 'completed':
-        return '#007AFF';
-      case 'cancelled':
-        return '#FF3B30';
-      default:
-        return '#666';
-    }
-  };
-
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
   };
 
   const renderRental = (rental) => {
     const vehicleInfo = rental.vehicle
-      ? `${rental.vehicle.make} ${rental.vehicle.model} (${rental.vehicle.plate_number})`
+      ? `${rental.vehicle.car_type} (${rental.vehicle.plate_no})`
       : 'Unknown Vehicle';
     const customerName = rental.customer?.name || 'Unknown Customer';
 
@@ -89,23 +86,16 @@ const RentalsListScreen = ({ navigation }) => {
           title={vehicleInfo}
           subtitle={customerName}
           rightElement={
-            <View style={styles.statusBadgeContainer}>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(rental.status) }]}>
-                <Text style={styles.statusText}>{rental.status}</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => handleDelete(rental.id, vehicleInfo)}
-                style={styles.deleteButton}
-              >
-                <Text style={styles.deleteButtonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => handleDelete(rental.id, vehicleInfo)}
+              style={styles.deleteButton}
+            >
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            </TouchableOpacity>
           }
         />
-        <CardRow label="Start Date" value={formatDate(rental.start_date)} />
-        <CardRow label="End Date" value={formatDate(rental.end_date)} />
-        <CardRow label="Daily Rate" value={`$${rental.daily_rate}`} />
-        <CardRow label="Total Amount" value={`$${rental.total_amount}`} />
+        <CardRow label="Started At" value={formatDate(rental.started_at)} />
+        <CardRow label="Ended At" value={formatDate(rental.ended_at)} />
       </Card>
     );
   };
@@ -203,21 +193,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  statusBadgeContainer: {
-    alignItems: 'flex-end',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
   },
   deleteButton: {
     backgroundColor: '#ff3b30',

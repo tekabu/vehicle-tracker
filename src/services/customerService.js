@@ -3,12 +3,13 @@ import api from './api';
 class CustomerService {
   async getAll() {
     const response = await api.get('/customers');
-    return response.data;
+    // Handle both { customers: [...] } and direct array responses
+    return response.customers || response.data || [];
   }
 
   async getById(id) {
     const response = await api.get(`/customers/${id}`);
-    return response.data;
+    return response.customer || response.data;
   }
 
   async create(customerData) {

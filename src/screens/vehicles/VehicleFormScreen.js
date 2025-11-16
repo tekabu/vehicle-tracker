@@ -22,14 +22,9 @@ const VehicleFormScreen = ({ navigation, route }) => {
   const isEditing = !!vehicle;
 
   const [formData, setFormData] = useState({
-    plate_number: vehicle?.plate_number || '',
-    make: vehicle?.make || '',
-    model: vehicle?.model || '',
-    year: vehicle?.year?.toString() || '',
-    color: vehicle?.color || '',
-    vin: vehicle?.vin || '',
+    plate_no: vehicle?.plate_no || '',
+    car_type: vehicle?.car_type || '',
     device_id: vehicle?.device_id?.toString() || '',
-    status: vehicle?.status || 'available',
   });
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -62,30 +57,12 @@ const VehicleFormScreen = ({ navigation, route }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.plate_number.trim()) {
-      newErrors.plate_number = 'Plate number is required';
+    if (!formData.plate_no.trim()) {
+      newErrors.plate_no = 'Plate number is required';
     }
 
-    if (!formData.make.trim()) {
-      newErrors.make = 'Make is required';
-    }
-
-    if (!formData.model.trim()) {
-      newErrors.model = 'Model is required';
-    }
-
-    if (!formData.year.trim()) {
-      newErrors.year = 'Year is required';
-    } else if (isNaN(formData.year) || formData.year < 1900 || formData.year > 2100) {
-      newErrors.year = 'Invalid year';
-    }
-
-    if (!formData.color.trim()) {
-      newErrors.color = 'Color is required';
-    }
-
-    if (!formData.vin.trim()) {
-      newErrors.vin = 'VIN is required';
+    if (!formData.car_type.trim()) {
+      newErrors.car_type = 'Car type is required';
     }
 
     setErrors(newErrors);
@@ -100,8 +77,8 @@ const VehicleFormScreen = ({ navigation, route }) => {
     try {
       setLoading(true);
       const submitData = {
-        ...formData,
-        year: parseInt(formData.year),
+        plate_no: formData.plate_no,
+        car_type: formData.car_type,
         device_id: formData.device_id ? parseInt(formData.device_id) : null,
       };
 
@@ -114,7 +91,7 @@ const VehicleFormScreen = ({ navigation, route }) => {
       }
       navigation.goBack();
     } catch (error) {
-      if (error.errors) {
+      if (error.errors && Object.keys(error.errors).length > 0) {
         setErrors(error.errors);
       }
       Alert.alert('Error', error.message || 'Failed to save vehicle');
@@ -132,6 +109,7 @@ const VehicleFormScreen = ({ navigation, route }) => {
       <Header
         title={isEditing ? 'Edit Vehicle' : 'New Vehicle'}
         navigation={navigation}
+        showBackButton={true}
       />
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
@@ -139,80 +117,30 @@ const VehicleFormScreen = ({ navigation, route }) => {
           <View style={styles.formGroup}>
             <Text style={styles.label}>Plate Number *</Text>
             <TextInput
-              style={[styles.input, errors.plate_number && styles.inputError]}
-              value={formData.plate_number}
-              onChangeText={(value) => handleChange('plate_number', value)}
+              style={[styles.input, errors.plate_no && styles.inputError]}
+              value={formData.plate_no}
+              onChangeText={(value) => handleChange('plate_no', value)}
               placeholder="Enter plate number (e.g., ABC-1234)"
               placeholderTextColor="#999"
               autoCapitalize="characters"
             />
-            {errors.plate_number && <Text style={styles.errorText}>{errors.plate_number}</Text>}
+            {errors.plate_no && <Text style={styles.errorText}>{errors.plate_no}</Text>}
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Make *</Text>
+            <Text style={styles.label}>Car Type *</Text>
             <TextInput
-              style={[styles.input, errors.make && styles.inputError]}
-              value={formData.make}
-              onChangeText={(value) => handleChange('make', value)}
-              placeholder="Enter make (e.g., Toyota)"
+              style={[styles.input, errors.car_type && styles.inputError]}
+              value={formData.car_type}
+              onChangeText={(value) => handleChange('car_type', value)}
+              placeholder="Enter car type (e.g., Toyota Camry 2023)"
               placeholderTextColor="#999"
             />
-            {errors.make && <Text style={styles.errorText}>{errors.make}</Text>}
+            {errors.car_type && <Text style={styles.errorText}>{errors.car_type}</Text>}
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Model *</Text>
-            <TextInput
-              style={[styles.input, errors.model && styles.inputError]}
-              value={formData.model}
-              onChangeText={(value) => handleChange('model', value)}
-              placeholder="Enter model (e.g., Camry)"
-              placeholderTextColor="#999"
-            />
-            {errors.model && <Text style={styles.errorText}>{errors.model}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Year *</Text>
-            <TextInput
-              style={[styles.input, errors.year && styles.inputError]}
-              value={formData.year}
-              onChangeText={(value) => handleChange('year', value)}
-              placeholder="Enter year (e.g., 2023)"
-              placeholderTextColor="#999"
-              keyboardType="numeric"
-            />
-            {errors.year && <Text style={styles.errorText}>{errors.year}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Color *</Text>
-            <TextInput
-              style={[styles.input, errors.color && styles.inputError]}
-              value={formData.color}
-              onChangeText={(value) => handleChange('color', value)}
-              placeholder="Enter color (e.g., Silver)"
-              placeholderTextColor="#999"
-            />
-            {errors.color && <Text style={styles.errorText}>{errors.color}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>VIN *</Text>
-            <TextInput
-              style={[styles.input, errors.vin && styles.inputError]}
-              value={formData.vin}
-              onChangeText={(value) => handleChange('vin', value)}
-              placeholder="Enter VIN"
-              placeholderTextColor="#999"
-              autoCapitalize="characters"
-            />
-            {errors.vin && <Text style={styles.errorText}>{errors.vin}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>GPS Device</Text>
+            <Text style={styles.label}>Device</Text>
             {loadingDevices ? (
               <ActivityIndicator size="small" color="#007AFF" />
             ) : (
@@ -226,67 +154,13 @@ const VehicleFormScreen = ({ navigation, route }) => {
                   {devices.map((device) => (
                     <Picker.Item
                       key={device.id}
-                      label={`${device.device_id} (${device.type})`}
+                      label={`${device.device}`}
                       value={device.id.toString()}
                     />
                   ))}
                 </Picker>
               </View>
             )}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Status *</Text>
-            <View style={styles.statusContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.statusButton,
-                  formData.status === 'available' && styles.statusButtonActive,
-                ]}
-                onPress={() => handleChange('status', 'available')}
-              >
-                <Text
-                  style={[
-                    styles.statusButtonText,
-                    formData.status === 'available' && styles.statusButtonTextActive,
-                  ]}
-                >
-                  Available
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.statusButton,
-                  formData.status === 'rented' && styles.statusButtonActive,
-                ]}
-                onPress={() => handleChange('status', 'rented')}
-              >
-                <Text
-                  style={[
-                    styles.statusButtonText,
-                    formData.status === 'rented' && styles.statusButtonTextActive,
-                  ]}
-                >
-                  Rented
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.statusButton,
-                  formData.status === 'maintenance' && styles.statusButtonActive,
-                ]}
-                onPress={() => handleChange('status', 'maintenance')}
-              >
-                <Text
-                  style={[
-                    styles.statusButtonText,
-                    formData.status === 'maintenance' && styles.statusButtonTextActive,
-                  ]}
-                >
-                  Maintenance
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
 
           <TouchableOpacity
@@ -360,31 +234,6 @@ const styles = StyleSheet.create({
   },
   picker: {
     height: 50,
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  statusButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  statusButtonActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  statusButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-  },
-  statusButtonTextActive: {
-    color: '#fff',
   },
   submitButton: {
     backgroundColor: '#007AFF',

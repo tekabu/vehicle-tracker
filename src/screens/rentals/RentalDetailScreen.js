@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../components/Header';
 import Card, { CardHeader, CardRow, CardSection } from '../../components/Card';
 import rentalService from '../../services/rentalService';
@@ -22,6 +23,13 @@ const RentalDetailScreen = ({ navigation, route }) => {
   useEffect(() => {
     loadRental();
   }, [rentalId]);
+
+  // Reload rental when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadRental();
+    }, [rentalId])
+  );
 
   const loadRental = async () => {
     try {
@@ -136,7 +144,7 @@ const RentalDetailScreen = ({ navigation, route }) => {
     return (
       <View style={styles.container}>
         <StatusBar style="dark" />
-        <Header title="Rental Details" navigation={navigation} />
+        <Header title="Rental Details" navigation={navigation} showBackButton={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -158,6 +166,7 @@ const RentalDetailScreen = ({ navigation, route }) => {
       <Header
         title="Rental Details"
         navigation={navigation}
+        showBackButton={true}
         rightElement={
           rental.status === 'pending' && (
             <TouchableOpacity onPress={handleEdit} style={styles.editButton}>

@@ -3,12 +3,13 @@ import api from './api';
 class RentalService {
   async getAll() {
     const response = await api.get('/rentals');
-    return response.data;
+    // Handle both { rentals: [...] } and direct array responses
+    return response.rentals || response.data || [];
   }
 
   async getById(id) {
     const response = await api.get(`/rentals/${id}`);
-    return response.data;
+    return response.rental || response.data;
   }
 
   async create(rentalData) {

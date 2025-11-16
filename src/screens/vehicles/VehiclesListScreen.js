@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../components/Header';
 import Card, { CardHeader, CardRow } from '../../components/Card';
 import vehicleService from '../../services/vehicleService';
@@ -10,6 +11,13 @@ const VehiclesListScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Reload vehicles when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadVehicles();
+    }, [])
+  );
+
   useEffect(() => {
     loadVehicles();
   }, []);
@@ -18,9 +26,12 @@ const VehiclesListScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const data = await vehicleService.getAll();
-      setVehicles(data);
+      // Ensure data is always an array
+      const vehiclesArray = Array.isArray(data) ? data : [];
+      setVehicles(vehiclesArray);
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to load vehicles');
+      setVehicles([]); // Set empty array on error
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -32,10 +43,10 @@ const VehiclesListScreen = ({ navigation }) => {
     loadVehicles();
   };
 
-  const handleDelete = (id, plateNumber) => {
+  const handleDelete = (id, plateNo) => {
     Alert.alert(
       'Delete Vehicle',
-      `Are you sure you want to delete vehicle ${plateNumber}?`,
+      `Are you sure you want to delete vehicle ${plateNo}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -55,43 +66,23 @@ const VehiclesListScreen = ({ navigation }) => {
     );
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'available':
-        return '#34C759';
-      case 'rented':
-        return '#FF9500';
-      case 'maintenance':
-        return '#FF3B30';
-      default:
-        return '#666';
-    }
-  };
-
   const renderVehicle = (vehicle) => (
     <Card
       key={vehicle.id}
       onPress={() => navigation.navigate('VehicleDetail', { vehicleId: vehicle.id })}
     >
       <CardHeader
-        title={`${vehicle.make} ${vehicle.model}`}
-        subtitle={`${vehicle.year} • ${vehicle.plate_number}`}
+        title={vehicle.car_type}
+        subtitle={vehicle.plate_no}
         rightElement={
-          <View style={styles.statusBadgeContainer}>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(vehicle.status) }]}>
-              <Text style={styles.statusText}>{vehicle.status}</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => handleDelete(vehicle.id, vehicle.plate_number)}
-              style={styles.deleteButton}
-            >
-              <Text style={styles.deleteButtonText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => handleDelete(vehicle.id, vehicle.plate_no)}
+            style={styles.deleteButton}
+          >
+            <Text style={styles.deleteButtonText}>Delete</Text>
+          </TouchableOpacity>
         }
       />
-      <CardRow label="Color" value={vehicle.color} />
-      <CardRow label="VIN" value={vehicle.vin} />
       {vehicle.device && (
         <CardRow label="Device" value={vehicle.device.device_id} />
       )}
@@ -191,21 +182,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  statusBadgeContainer: {
-    alignItems: 'flex-end',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
   },
   deleteButton: {
     backgroundColor: '#ff3b30',

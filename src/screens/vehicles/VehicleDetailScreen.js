@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import Header from '../../components/Header';
 import Card, { CardHeader, CardRow, CardSection } from '../../components/Card';
 import vehicleService from '../../services/vehicleService';
@@ -13,6 +14,13 @@ const VehicleDetailScreen = ({ navigation, route }) => {
   useEffect(() => {
     loadVehicle();
   }, [vehicleId]);
+
+  // Reload vehicle when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadVehicle();
+    }, [vehicleId])
+  );
 
   const loadVehicle = async () => {
     try {
@@ -71,7 +79,7 @@ const VehicleDetailScreen = ({ navigation, route }) => {
     return (
       <View style={styles.container}>
         <StatusBar style="dark" />
-        <Header title="Vehicle Details" navigation={navigation} />
+        <Header title="Vehicle Details" navigation={navigation} showBackButton={true} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
         </View>
@@ -89,6 +97,7 @@ const VehicleDetailScreen = ({ navigation, route }) => {
       <Header
         title="Vehicle Details"
         navigation={navigation}
+        showBackButton={true}
         rightElement={
           <TouchableOpacity onPress={handleEdit} style={styles.editButton}>
             <Text style={styles.editButtonText}>Edit</Text>
@@ -121,7 +130,7 @@ const VehicleDetailScreen = ({ navigation, route }) => {
 
           {vehicle.device && (
             <CardSection style={styles.section}>
-              <Text style={styles.sectionTitle}>GPS Device</Text>
+              <Text style={styles.sectionTitle}>Device</Text>
               <CardRow label="Device ID" value={vehicle.device.device_id} />
               <CardRow label="Device Type" value={vehicle.device.type} />
               <CardRow label="Device Status" value={vehicle.device.status} />

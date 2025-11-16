@@ -25,11 +25,8 @@ const RentalFormScreen = ({ navigation, route }) => {
   const [formData, setFormData] = useState({
     vehicle_id: rental?.vehicle_id?.toString() || '',
     customer_id: rental?.customer_id?.toString() || '',
-    start_date: rental?.start_date || '',
-    end_date: rental?.end_date || '',
-    daily_rate: rental?.daily_rate || '',
-    deposit: rental?.deposit || '',
-    notes: rental?.notes || '',
+    started_at: rental?.started_at || '',
+    ended_at: rental?.ended_at || '',
   });
   const [vehicles, setVehicles] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -75,24 +72,10 @@ const RentalFormScreen = ({ navigation, route }) => {
       newErrors.customer_id = 'Customer is required';
     }
 
-    if (!formData.start_date.trim()) {
-      newErrors.start_date = 'Start date is required (YYYY-MM-DD)';
-    }
-
-    if (!formData.end_date.trim()) {
-      newErrors.end_date = 'End date is required (YYYY-MM-DD)';
-    }
-
-    if (!formData.daily_rate.trim()) {
-      newErrors.daily_rate = 'Daily rate is required';
-    } else if (isNaN(formData.daily_rate) || parseFloat(formData.daily_rate) <= 0) {
-      newErrors.daily_rate = 'Invalid daily rate';
-    }
-
-    if (!formData.deposit.trim()) {
-      newErrors.deposit = 'Deposit is required';
-    } else if (isNaN(formData.deposit) || parseFloat(formData.deposit) < 0) {
-      newErrors.deposit = 'Invalid deposit amount';
+    // started_at is optional
+    // ended_at validation: invalid if ended_at is not empty and started_at is empty
+    if (formData.ended_at.trim() && !formData.started_at.trim()) {
+      newErrors.ended_at = 'Cannot have end date without start date';
     }
 
     setErrors(newErrors);
@@ -109,11 +92,8 @@ const RentalFormScreen = ({ navigation, route }) => {
       const submitData = {
         vehicle_id: parseInt(formData.vehicle_id),
         customer_id: parseInt(formData.customer_id),
-        start_date: formData.start_date,
-        end_date: formData.end_date,
-        daily_rate: parseFloat(formData.daily_rate),
-        deposit: parseFloat(formData.deposit),
-        notes: formData.notes,
+        started_at: formData.started_at.trim() || null,
+        ended_at: formData.ended_at.trim() || null,
       };
 
       if (isEditing) {
@@ -125,7 +105,7 @@ const RentalFormScreen = ({ navigation, route }) => {
       }
       navigation.goBack();
     } catch (error) {
-      if (error.errors) {
+      if (error.errors && Object.keys(error.errors).length > 0) {
         setErrors(error.errors);
       }
       Alert.alert('Error', error.message || 'Failed to save rental');
@@ -155,6 +135,7 @@ const RentalFormScreen = ({ navigation, route }) => {
       <Header
         title={isEditing ? 'Edit Rental' : 'New Rental'}
         navigation={navigation}
+        showBackButton={true}
       />
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
@@ -171,7 +152,7 @@ const RentalFormScreen = ({ navigation, route }) => {
                 {vehicles.map((vehicle) => (
                   <Picker.Item
                     key={vehicle.id}
-                    label={`${vehicle.make} ${vehicle.model} (${vehicle.plate_number})`}
+                    label={`${vehicle.car_type} - ${vehicle.plate_no}`}
                     value={vehicle.id.toString()}
                   />
                 ))}
@@ -192,7 +173,7 @@ const RentalFormScreen = ({ navigation, route }) => {
                 {customers.map((customer) => (
                   <Picker.Item
                     key={customer.id}
-                    label={`${customer.name} (${customer.email})`}
+                    label={customer.name}
                     value={customer.id.toString()}
                   />
                 ))}
@@ -202,66 +183,27 @@ const RentalFormScreen = ({ navigation, route }) => {
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Start Date * (YYYY-MM-DD)</Text>
+            <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
             <TextInput
-              style={[styles.input, errors.start_date && styles.inputError]}
-              value={formData.start_date}
-              onChangeText={(value) => handleChange('start_date', value)}
-              placeholder="2025-11-15"
+              style={[styles.input, errors.started_at && styles.inputError]}
+              value={formData.started_at}
+              onChangeText={(value) => handleChange('started_at', value)}
+              placeholder="2025-11-15 (optional)"
               placeholderTextColor="#999"
             />
-            {errors.start_date && <Text style={styles.errorText}>{errors.start_date}</Text>}
+            {errors.started_at && <Text style={styles.errorText}>{errors.started_at}</Text>}
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>End Date * (YYYY-MM-DD)</Text>
+            <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
             <TextInput
-              style={[styles.input, errors.end_date && styles.inputError]}
-              value={formData.end_date}
-              onChangeText={(value) => handleChange('end_date', value)}
-              placeholder="2025-11-20"
+              style={[styles.input, errors.ended_at && styles.inputError]}
+              value={formData.ended_at}
+              onChangeText={(value) => handleChange('ended_at', value)}
+              placeholder="2025-11-20 (optional)"
               placeholderTextColor="#999"
             />
-            {errors.end_date && <Text style={styles.errorText}>{errors.end_date}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Daily Rate * ($)</Text>
-            <TextInput
-              style={[styles.input, errors.daily_rate && styles.inputError]}
-              value={formData.daily_rate}
-              onChangeText={(value) => handleChange('daily_rate', value)}
-              placeholder="50.00"
-              placeholderTextColor="#999"
-              keyboardType="decimal-pad"
-            />
-            {errors.daily_rate && <Text style={styles.errorText}>{errors.daily_rate}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Deposit * ($)</Text>
-            <TextInput
-              style={[styles.input, errors.deposit && styles.inputError]}
-              value={formData.deposit}
-              onChangeText={(value) => handleChange('deposit', value)}
-              placeholder="200.00"
-              placeholderTextColor="#999"
-              keyboardType="decimal-pad"
-            />
-            {errors.deposit && <Text style={styles.errorText}>{errors.deposit}</Text>}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Notes</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={formData.notes}
-              onChangeText={(value) => handleChange('notes', value)}
-              placeholder="Any special notes or requirements"
-              placeholderTextColor="#999"
-              multiline
-              numberOfLines={3}
-            />
+            {errors.ended_at && <Text style={styles.errorText}>{errors.ended_at}</Text>}
           </View>
 
           <TouchableOpacity
