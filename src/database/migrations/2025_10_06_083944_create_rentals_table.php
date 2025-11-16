@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('rentals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained()->onDelete('restrict');
-            $table->foreignId('vehicle_id')->constrained()->onDelete('restrict');
+            $table->unsignedBigInteger('customer_id');
+            $table->unsignedBigInteger('vehicle_id');
             $table->timestamps();
         });
     }
