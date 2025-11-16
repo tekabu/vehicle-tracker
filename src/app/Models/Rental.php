@@ -17,6 +17,14 @@ class Rental extends Model
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['start_date', 'end_date'];
+
+
+    /**
      * Get the customer associated with the rental.
      */
     public function customer()
@@ -44,5 +52,32 @@ class Rental extends Model
             $query->whereNull('ended_at')
                 ->orWhere('ended_at', '>', now());
         });
+    }
+    
+
+    /**
+     * Get the formatted start date attribute.
+     *
+     * @return string|null
+     */
+    public function getStartDateAttribute()
+    {
+        if (isset($this->attributes['started_at'])) {
+            return \Carbon\Carbon::parse($this->attributes['started_at'])->format('M. d, Y');
+        }
+        return null;
+    }
+
+    /**
+     * Get the formatted end date attribute.
+     *
+     * @return string|null
+     */
+    public function getEndDateAttribute()
+    {
+        if (isset($this->attributes['ended_at'])) {
+            return \Carbon\Carbon::parse($this->attributes['ended_at'])->format('M. d, Y');
+        }
+        return null;
     }
 }
