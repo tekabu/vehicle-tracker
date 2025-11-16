@@ -108,32 +108,19 @@ const VehicleDetailScreen = ({ navigation, route }) => {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <Card>
           <CardHeader
-            title={`${vehicle.make} ${vehicle.model}`}
+            title={`${vehicle.plate_no} - ${vehicle.car_type}`}
             subtitle={`ID: ${vehicle.id}`}
-            rightElement={
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(vehicle.status) }]}>
-                <Text style={styles.statusText}>{vehicle.status}</Text>
-              </View>
-            }
           />
 
           <CardSection style={styles.section}>
             <Text style={styles.sectionTitle}>Basic Information</Text>
-            <CardRow label="Plate Number" value={vehicle.plate_number} />
-            <CardRow label="Make" value={vehicle.make} />
-            <CardRow label="Model" value={vehicle.model} />
-            <CardRow label="Year" value={vehicle.year.toString()} />
-            <CardRow label="Color" value={vehicle.color} />
-            <CardRow label="VIN" value={vehicle.vin} />
-            <CardRow label="Status" value={vehicle.status} />
+            <CardRow label="Plate Number" value={vehicle.plate_no} />
           </CardSection>
 
           {vehicle.device && (
             <CardSection style={styles.section}>
               <Text style={styles.sectionTitle}>Device</Text>
-              <CardRow label="Device ID" value={vehicle.device.device_id} />
-              <CardRow label="Device Type" value={vehicle.device.type} />
-              <CardRow label="Device Status" value={vehicle.device.status} />
+              <CardRow label="Device ID" value={vehicle.device.device} />
             </CardSection>
           )}
 
