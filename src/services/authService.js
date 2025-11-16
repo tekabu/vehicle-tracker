@@ -52,12 +52,20 @@ class AuthService {
     return api.post('/password/change', passwordData);
   }
 
-  async generateOTP(email) {
-    return api.post('/otp', { email });
+  async generateOTP(email, type) {
+    const payload = { email };
+    if (type) {
+      payload.type = type;
+    }
+    return api.post('/otp', payload);
   }
 
-  async validateOTP(email, otp) {
-    return api.post('/otp/validate', { email, otp });
+  async validateOTP(email, otp, type) {
+    const payload = { email, otp };
+    if (type) {
+      payload.type = type;
+    }
+    return api.post('/otp/validate', payload);
   }
 
   async resetPassword(resetData) {

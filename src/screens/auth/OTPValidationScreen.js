@@ -14,7 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import authService from '../../services/authService';
 
 export default function OTPValidationScreen({ navigation, route }) {
-  const { email } = route.params;
+  const { email, type } = route.params; // type can be 'email_verification' or undefined (password reset)
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -33,22 +33,33 @@ export default function OTPValidationScreen({ navigation, route }) {
 
     try {
       setLoading(true);
-      const response = await authService.validateOTP(email, otp.trim());
+      const response = await authService.validateOTP(email, otp.trim(), type);
 
       // OTP validated successfully
       const message = response.message || 'OTP validated successfully';
-      const resetToken = response.reset_token;
 
-      Alert.alert('Success', message, [
-        {
-          text: 'Continue',
-          onPress: () =>
-            navigation.navigate('ResetPassword', {
-              email: email,
-              resetToken: resetToken,
-            }),
-        },
-      ]);
+      if (type === 'email_verification') {
+        // Email verification flow - navigate to login
+        Alert.alert('Success', message || 'Email verified successfully', [
+          {
+            text: 'Continue to Login',
+            onPress: () => navigation.navigate('Login'),
+          },
+        ]);
+      } else {
+        // Password reset flow - navigate to reset password
+        const resetToken = response.reset_token;
+        Alert.alert('Success', message, [
+          {
+            text: 'Continue',
+            onPress: () =>
+              navigation.navigate('ResetPassword', {
+                email: email,
+                resetToken: resetToken,
+              }),
+          },
+        ]);
+      }
     } catch (error) {
       // Handle different error scenarios
       let errorMessage = 'Something went wrong. Please try again.';
@@ -76,7 +87,7 @@ export default function OTPValidationScreen({ navigation, route }) {
   const handleResendOTP = async () => {
     try {
       setResending(true);
-      const response = await authService.generateOTP(email);
+      const response = await authService.generateOTP(email, type);
 
       const message = response.message || 'OTP has been resent to your email';
       Alert.alert('Success', message);
@@ -106,7 +117,9 @@ export default function OTPValidationScreen({ navigation, route }) {
       <StatusBar style="dark" />
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>Enter OTP</Text>
+          <Text style={styles.title}>
+            {type === 'email_verification' ? 'Verify Your Email' : 'Enter OTP'}
+          </Text>
           <Text style={styles.subtitle}>
             We've sent a 6-digit code to{'\n'}
             <Text style={styles.email}>{email}</Text>
