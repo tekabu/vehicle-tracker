@@ -1,0 +1,11 @@
+services:
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: scheduler-filebrowser
+    ports:
+      - ${FILEBROWSER_PORT}:80
+    volumes:
+      - $(pwd):/srv
+      - ./filebrowser/database:/database
+      - ./filebrowser/config:/config
+    restart: ${DOCKER_RESTART}
