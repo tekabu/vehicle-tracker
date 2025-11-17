@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# File Browser Docker Runner with Authentication
+# File Browser Docker Runner (Official Method)
 # Mounts current directory and starts web interface
 
 CONTAINER_NAME="filebrowser"
@@ -14,24 +14,20 @@ if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
     docker rm -f $CONTAINER_NAME
 fi
 
-# Create a config directory and remove old database (directory or file)
-CONFIG_DIR="$HOME/.filebrowser"
-mkdir -p "$CONFIG_DIR"
-rm -rf "$CONFIG_DIR/database.db"
-echo "Cleaned old database..."
+# Remove old volumes for fresh start
+echo "Cleaning old volumes..."
+docker volume rm filebrowser_database 2>/dev/null
+docker volume rm filebrowser_config 2>/dev/null
 
-# Run File Browser with current directory mounted
+# Run File Browser with official volume setup
 echo "Starting File Browser..."
 docker run -d \
-  --name $CONTAINER_NAME \
-  -p $PORT:80 \
-  -v "$(pwd):/srv" \
-  -v "$CONFIG_DIR:/config" \
-  -e PUID=$(id -u) \
-  -e PGID=$(id -g) \
-  filebrowser/filebrowser:latest \
-  --database /config/database.db \
-  --root /srv
+    --name $CONTAINER_NAME \
+    -v "$(pwd):/srv" \
+    -v filebrowser_database:/database \
+    -v filebrowser_config:/config \
+    -p $PORT:80 \
+    filebrowser/filebrowser:latest
 
 # Wait for container to start
 sleep 3
@@ -55,6 +51,7 @@ if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
     echo ""
     echo "To stop: docker stop $CONTAINER_NAME"
     echo "To remove: docker rm -f $CONTAINER_NAME"
+    echo "To clean volumes: docker volume rm filebrowser_database filebrowser_config"
 else
     echo "✗ Failed to start container"
     docker logs $CONTAINER_NAME
