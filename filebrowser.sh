@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# File Browser Docker Runner (Official Method with Init)
+# File Browser Docker Runner (Official Method with Proper Init)
 # Mounts current directory and starts web interface
 
 CONTAINER_NAME="filebrowser"
@@ -32,13 +32,16 @@ docker run -d \
 # Wait for container to start
 sleep 3
 
-# Initialize config
+# Initialize config with proper database path
 echo "Initializing File Browser configuration..."
-docker exec $CONTAINER_NAME filebrowser config init
+docker exec $CONTAINER_NAME filebrowser config init --database /database/filebrowser.db
+
+# Set database path in config
+docker exec $CONTAINER_NAME filebrowser config set --database /database/filebrowser.db
 
 # Create admin user
 echo "Creating admin user..."
-docker exec $CONTAINER_NAME filebrowser users add $USERNAME $PASSWORD --perm.admin
+docker exec $CONTAINER_NAME filebrowser users add $USERNAME $PASSWORD --perm.admin --database /database/filebrowser.db
 
 # Restart container to apply changes
 echo "Restarting container..."
