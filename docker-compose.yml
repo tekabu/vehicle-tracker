@@ -6,3 +6,5 @@ services:
       - 5050:80
     volumes:
       - ./build:/srv
+      - ./filebrowser/database:/database
+      - ./filebrowser/config:/config
