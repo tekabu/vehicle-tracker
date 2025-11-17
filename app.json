@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "vehicle-tracker-mobile",
-    "slug": "vehicle-tracker-mobile",
+    "name": "Vehicle Tracker",
+    "slug": "vehicle-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
