@@ -14,9 +14,11 @@ if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
     docker rm -f $CONTAINER_NAME
 fi
 
-# Create a config directory
+# Create a config directory and remove old database
 CONFIG_DIR="$HOME/.filebrowser"
 mkdir -p "$CONFIG_DIR"
+rm -f "$CONFIG_DIR/database.db"
+echo "Cleaned old database..."
 
 # Run File Browser with current directory mounted
 echo "Starting File Browser..."
@@ -24,15 +26,24 @@ docker run -d \
   --name $CONTAINER_NAME \
   -p $PORT:80 \
   -v "$(pwd):/srv" \
-  -v "$CONFIG_DIR/database.db:/database.db" \
-  filebrowser/filebrowser:latest
+  -v "$CONFIG_DIR:/config" \
+  -e PUID=$(id -u) \
+  -e PGID=$(id -g) \
+  filebrowser/filebrowser:latest \
+  --database /config/database.db \
+  --root /srv
 
 # Wait for container to start
 sleep 3
 
-# Set up admin user
-echo "Setting up credentials..."
+# Create admin user
+echo "Creating admin user..."
 docker exec $CONTAINER_NAME filebrowser users add $USERNAME $PASSWORD --perm.admin
+
+# Restart container to apply changes
+echo "Restarting container..."
+docker restart $CONTAINER_NAME
+sleep 2
 
 # Check if container is running
 if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
@@ -44,6 +55,7 @@ if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
     echo ""
     echo "To stop: docker stop $CONTAINER_NAME"
     echo "To remove: docker rm -f $CONTAINER_NAME"
+    echo "To clean database: rm -f $CONFIG_DIR/database.db"
 else
     echo "✗ Failed to start container"
     docker logs $CONTAINER_NAME
