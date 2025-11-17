@@ -5,6 +5,6 @@ services:
     ports:
       - 5050:80
     volumes:
-      - $(pwd):/srv
-      - ./filebrowser/database:/database
-      - ./filebrowser/config:/config
+      - .:/srv
+      # - ./filebrowser/database:/database
+      # - ./filebrowser/config:/config
