@@ -9,6 +9,7 @@ const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl ||
 
 // Use AsyncStorage for React Native persistent storage
 import storage from '@react-native-async-storage/async-storage';
+import { logError, logMessage } from '../utils/crashlytics';
 
 class ApiService {
   constructor() {
@@ -89,12 +90,19 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        // Don't log errors - let the caller handle them
-        throw {
+        // Log API errors to Crashlytics
+        const apiError = {
           status: response.status,
           message: data.message || 'An error occurred',
           errors: data.errors || {},
         };
+
+        // Create detailed error context
+        const errorContext = `API Error: ${options.method || 'GET'} ${endpoint} - Status: ${response.status}`;
+        logError(new Error(apiError.message), errorContext);
+        logMessage(`API Request failed: ${errorContext}`);
+
+        throw apiError;
       }
 
       return data;
@@ -103,8 +111,14 @@ class ApiService {
       if (error.status) {
         throw error;
       }
-      // Only network errors should be logged here
+      // Network errors
       console.error('[API] Network error:', error);
+
+      // Log network errors to Crashlytics
+      const networkErrorContext = `Network Error: ${options.method || 'GET'} ${endpoint}`;
+      logError(error, networkErrorContext);
+      logMessage(`Network request failed: ${networkErrorContext}`);
+
       throw {
         status: 0,
         message: 'Network error. Please check your connection.',

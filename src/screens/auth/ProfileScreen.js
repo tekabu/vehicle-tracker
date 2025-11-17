@@ -9,10 +9,12 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import Header from '../../components/Header';
 import authService from '../../services/authService';
+import { testCrash, isAvailable } from '../../utils/crashlytics';
 
 export default function ProfileScreen({ navigation }) {
   // Profile Update State
@@ -164,6 +166,26 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const handleTestCrash = () => {
+    Alert.alert(
+      'Test Crashlytics',
+      'This will force a crash to test Firebase Crashlytics. The app will close immediately. Continue?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Crash Now',
+          style: 'destructive',
+          onPress: () => {
+            testCrash();
+          },
+        },
+      ]
+    );
+  };
+
   if (initialLoading) {
     return (
       <View style={styles.container}>
@@ -297,6 +319,37 @@ export default function ProfileScreen({ navigation }) {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Test Crashlytics Section (Dev Only) */}
+        {__DEV__ && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Developer Tools</Text>
+            <Text style={styles.devWarning}>
+              This section is only visible in development mode
+            </Text>
+
+            {/* Firebase Status */}
+            <View style={styles.statusContainer}>
+              <Text style={styles.statusLabel}>Firebase Crashlytics Status:</Text>
+              <Text style={[styles.statusValue, isAvailable() ? styles.statusActive : styles.statusInactive]}>
+                {isAvailable() ? '✓ Active (Built App)' : '✗ Inactive (Expo Go)'}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.button, styles.testButton, !isAvailable() && styles.buttonDisabled]}
+              onPress={handleTestCrash}
+              disabled={!isAvailable()}
+            >
+              <Text style={styles.buttonText}>Test Crashlytics</Text>
+            </TouchableOpacity>
+            <Text style={styles.testNote}>
+              {isAvailable()
+                ? 'This will force a crash to verify Firebase Crashlytics is working. The crash will appear in Firebase Console within a few minutes.'
+                : 'Crashlytics requires a built app. Use "eas build --profile development" to create a build with Firebase support.'}
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -396,5 +449,44 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  testButton: {
+    backgroundColor: '#ff4444',
+  },
+  devWarning: {
+    fontSize: 12,
+    color: '#ff6600',
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  testNote: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 12,
+    lineHeight: 18,
+  },
+  statusContainer: {
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  statusLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 6,
+  },
+  statusValue: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  statusActive: {
+    color: '#4CAF50',
+  },
+  statusInactive: {
+    color: '#FF9800',
   },
 });

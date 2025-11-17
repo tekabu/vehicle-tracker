@@ -44,3 +44,7 @@ yarn-error.*
 .claude/
 *.aab
 *.apk
+
+# Build outputs
+builds/*.apk
+builds/*.aab

@@ -6,6 +6,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import authService from './src/services/authService';
 import api from './src/services/api';
+import { initCrashlytics, clearUserInfo } from './src/utils/crashlytics';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 // Suppress specific warnings/errors that we handle gracefully
 LogBox.ignoreLogs([
@@ -52,6 +54,8 @@ function DrawerNavigator({ navigation }) {
   const performLogout = async () => {
     try {
       await authService.logout();
+      // Clear user info from Crashlytics
+      await clearUserInfo();
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
@@ -192,7 +196,21 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    // Initialize Crashlytics when app starts
+    initCrashlytics();
     checkAuthStatus();
+
+    // Global error handler for unhandled promise rejections
+    const errorHandler = (error, isFatal) => {
+      if (isFatal) {
+        console.error('Fatal error occurred:', error);
+      }
+    };
+
+    // Note: ErrorUtils is available in React Native but not in web
+    if (typeof ErrorUtils !== 'undefined') {
+      ErrorUtils.setGlobalHandler(errorHandler);
+    }
   }, []);
 
   const checkAuthStatus = async () => {
@@ -217,44 +235,46 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <>
-            <Stack.Screen name="Main" component={DrawerNavigator} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Main" component={DrawerNavigator} />
-          </>
-        )}
+    <ErrorBoundary>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {isAuthenticated ? (
+            <>
+              <Stack.Screen name="Main" component={DrawerNavigator} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Main" component={DrawerNavigator} />
+            </>
+          )}
 
 
-        {/* Auth Screens */}
-        <Stack.Screen name="Register" component={RegisterScreen} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="OTPValidation" component={OTPValidationScreen} />
-        <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+          {/* Auth Screens */}
+          <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="OTPValidation" component={OTPValidationScreen} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
 
-        {/* Customer Screens */}
-        <Stack.Screen name="CustomerDetail" component={CustomerDetailScreen} />
-        <Stack.Screen name="CustomerForm" component={CustomerFormScreen} />
+          {/* Customer Screens */}
+          <Stack.Screen name="CustomerDetail" component={CustomerDetailScreen} />
+          <Stack.Screen name="CustomerForm" component={CustomerFormScreen} />
 
-        {/* Device Screens */}
-        <Stack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
-        <Stack.Screen name="DeviceForm" component={DeviceFormScreen} />
+          {/* Device Screens */}
+          <Stack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
+          <Stack.Screen name="DeviceForm" component={DeviceFormScreen} />
 
-        {/* Vehicle Screens */}
-        <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
-        <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
-        <Stack.Screen name="VehicleTracking" component={VehicleTrackingScreen} />
+          {/* Vehicle Screens */}
+          <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
+          <Stack.Screen name="VehicleForm" component={VehicleFormScreen} />
+          <Stack.Screen name="VehicleTracking" component={VehicleTrackingScreen} />
 
-        {/* Rental Screens */}
-        <Stack.Screen name="RentalDetail" component={RentalDetailScreen} />
-        <Stack.Screen name="RentalForm" component={RentalFormScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+          {/* Rental Screens */}
+          <Stack.Screen name="RentalDetail" component={RentalDetailScreen} />
+          <Stack.Screen name="RentalForm" component={RentalFormScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ErrorBoundary>
   );
 }

@@ -25,6 +25,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.vehicle.tracker.p14",
+      "googleServicesFile": "./google-services.json",
       "config": {
         "googleMaps": {
           "apiKey": ""
@@ -34,6 +35,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/crashlytics"
+    ],
     "extra": {
       "eas": {
         "projectId": "7029d2a1-72ff-437e-a13c-036c236f0189"

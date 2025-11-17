@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import authService from '../services/authService';
+import { setUserInfo } from '../utils/crashlytics';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -63,6 +64,15 @@ export default function LoginScreen({ navigation }) {
 
       // Login successful - response contains: message, user, token
       setMessage({ type: 'success', text: response.message || 'Login successful' });
+
+      // Set user info in Crashlytics for error tracking
+      if (response.user) {
+        await setUserInfo(
+          response.user.id || 'unknown',
+          response.user.email || email.trim(),
+          response.user.name || ''
+        );
+      }
 
       // Navigate after a short delay to show the success message
       setTimeout(() => {
