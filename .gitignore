@@ -50,3 +50,5 @@ builds/*.apk
 builds/*.aab
 
 build.log
+nul
+settings.json
