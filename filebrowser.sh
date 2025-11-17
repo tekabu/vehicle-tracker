@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# File Browser Docker Runner (Official Method)
+# File Browser Docker Runner (Official Method with Init)
 # Mounts current directory and starts web interface
 
 CONTAINER_NAME="filebrowser"
@@ -31,6 +31,10 @@ docker run -d \
 
 # Wait for container to start
 sleep 3
+
+# Initialize config
+echo "Initializing File Browser configuration..."
+docker exec $CONTAINER_NAME filebrowser config init
 
 # Create admin user
 echo "Creating admin user..."
