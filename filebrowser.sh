@@ -14,10 +14,10 @@ if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
     docker rm -f $CONTAINER_NAME
 fi
 
-# Create a config directory and remove old database
+# Create a config directory and remove old database (directory or file)
 CONFIG_DIR="$HOME/.filebrowser"
 mkdir -p "$CONFIG_DIR"
-rm -f "$CONFIG_DIR/database.db"
+rm -rf "$CONFIG_DIR/database.db"
 echo "Cleaned old database..."
 
 # Run File Browser with current directory mounted
@@ -55,7 +55,6 @@ if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
     echo ""
     echo "To stop: docker stop $CONTAINER_NAME"
     echo "To remove: docker rm -f $CONTAINER_NAME"
-    echo "To clean database: rm -f $CONFIG_DIR/database.db"
 else
     echo "✗ Failed to start container"
     docker logs $CONTAINER_NAME
