@@ -216,6 +216,7 @@ eas build --platform ios
 
 To build locally and create an .apk file, use:
 ```bash
+npx expo prebuild --clean
 eas build --platform android --profile preview --local
 ```
 
