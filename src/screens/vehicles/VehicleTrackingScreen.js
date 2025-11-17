@@ -75,7 +75,7 @@ const VehicleTrackingScreen = ({ navigation, route }) => {
       console.log('Initiating MQTT connection...');
 
       // MQTT broker configuration - using WebSocket for React Native compatibility
-      const brokerUrl = 'ws://broker.emqx.io:8083/mqtt';
+      const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
       const topic = 'tracker-A1b2C3d4E5f6G7h8I9j0KlMnOpQrStUvWxYzABCD';
 
       // Create MQTT client with WebSocket
@@ -84,7 +84,6 @@ const VehicleTrackingScreen = ({ navigation, route }) => {
         clean: true,
         reconnectPeriod: 1000,
         connectTimeout: 30000,
-        protocol: 'ws',
         protocolVersion: 4,
       });
 
