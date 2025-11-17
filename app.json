@@ -24,7 +24,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.nino.escalera.vehicletrackermobile",
+      "package": "com.vehicle.tracker.p14",
       "config": {
         "googleMaps": {
           "apiKey": ""
