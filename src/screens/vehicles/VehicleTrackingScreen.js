@@ -1,3 +1,7 @@
+// Polyfills must be imported FIRST before anything else
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
