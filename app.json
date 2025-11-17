@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "config": {
         "googleMapsApiKey": ""
-      }
+      },
+      "bundleIdentifier": "com.vehicle.tracker.p14"
     },
     "android": {
       "adaptiveIcon": {
