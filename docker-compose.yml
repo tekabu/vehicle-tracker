@@ -6,6 +6,3 @@ services:
       - 5050:80
     volumes:
       - ./build:/srv
-    environment:
-      - FB_USERNAME=admin
-      - FB_PASSWORD=admin
