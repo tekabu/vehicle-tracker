@@ -12,11 +12,6 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      },
-      "hooks": {
-        "postBuild": {
-          "command": "node scripts/post-build.js"
-        }
       }
     },
     "production": {
