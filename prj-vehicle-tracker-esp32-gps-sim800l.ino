@@ -117,7 +117,11 @@ void loop() {
     lastStatusUpdate = millis();
   }
 
-  // run();
+  // Run the main tracking sequence
+  run();
+
+  // Small delay to allow other processes to run
+  delay(10);
 }
 
 void run() {
@@ -150,8 +154,13 @@ void run() {
 }
 
 void checkAT() {
-  runUntilOK("AT\r", _OK, 1000);
+  bool result = runUntilOK("AT\r", _OK, 1000);
   delay(1000);
+
+  // If AT check failed, wait 3 seconds to allow UDP communication
+  if (!result) {
+    delay(3000); // Give time for UDP communication
+  }
 }
 
 bool checkGPS() {
@@ -159,10 +168,26 @@ bool checkGPS() {
   // Try to get GPS data for up to 30 seconds as before
   unsigned long ctime = millis();
   bool at = false;
-  while (1) {
-    if (millis() - ctime >= 30000) break;
+  while (millis() - ctime < 30000) {
     at = at_command("AT+LOCATION=2\r", _OK, 5000);
     if (at) break;
+
+    // Process any pending UDP packets to maintain communication
+    if (udpServer.parsePacket() > 0) {
+      // Process the UDP packet
+      int len = udpServer.read(incomingPacket, 255);
+      if (len > 0) {
+        incomingPacket[len] = 0;
+      }
+      // Update client IP and activity
+      clientIP = udpServer.remoteIP();
+      lastClientActivity = millis();
+
+      // Send a reply to the UDP client
+      udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+      udpServer.printf("Vehicle Tracker Status: Connected to A9 module");
+      udpServer.endPacket();
+    }
   }
   delay(1000);
   return at;
@@ -196,10 +221,26 @@ bool enableGPS() {
 bool connectMqtt() {
   unsigned long ctime = millis();
   bool at = false;
-  while (1) {
-    if (millis() - ctime >= 30000) break;
+  while (millis() - ctime < 30000) {
     at = at_command("AT+MQTTCONN=\"broker.emqx.io\",1883,\"tracker-a9g-A1b2C3d4E5f6G7h8I9j0KlMnOpQrStUvWxYzABCD\",120,0,\"\",\"\"\r", _OK, 5000);
     if (at) break;
+
+    // Process any pending UDP packets to maintain communication
+    if (udpServer.parsePacket() > 0) {
+      // Process the UDP packet
+      int len = udpServer.read(incomingPacket, 255);
+      if (len > 0) {
+        incomingPacket[len] = 0;
+      }
+      // Update client IP and activity
+      clientIP = udpServer.remoteIP();
+      lastClientActivity = millis();
+
+      // Send a reply to the UDP client
+      udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+      udpServer.printf("Vehicle Tracker Status: Connected to A9 module");
+      udpServer.endPacket();
+    }
   }
   delay(1000);
   return at;
@@ -211,8 +252,29 @@ void disconnectMqtt() {
 }
 
 void publishMqtt() {
-  while (1) {
+  unsigned long publishStartTime = millis();
+  const unsigned long publishTimeout = 60000; // 1 minute timeout for publishing
+
+  while (millis() - publishStartTime < publishTimeout) {
     delay(1000);
+
+    // Process any pending UDP packets to maintain communication
+    if (udpServer.parsePacket() > 0) {
+      // Process the UDP packet
+      int len = udpServer.read(incomingPacket, 255);
+      if (len > 0) {
+        incomingPacket[len] = 0;
+      }
+      // Update client IP and activity
+      clientIP = udpServer.remoteIP();
+      lastClientActivity = millis();
+
+      // Send a reply to the UDP client
+      udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+      udpServer.printf("Vehicle Tracker Status: Connected to A9 module");
+      udpServer.endPacket();
+    }
+
     if (!readGPS()) continue;
     String command = "AT+MQTTPUB=\"tracker-A1b2C3d4E5f6G7h8I9j0KlMnOpQrStUvWxYzABCD\",\"$@id,@lat,@lng,@time#\",0,0,0\r";
     command.replace("@id", DEVICE_ID);
@@ -244,12 +306,35 @@ bool connectNetwork() {
   return true;
 }
 
-void runUntilOK(String command, String wait_for, long timeout) {
-  while (1) {
+bool runUntilOK(String command, String wait_for, long timeout) {
+  int attempts = 0;
+  const int max_attempts = 5; // Maximum number of attempts
+
+  while (attempts < max_attempts) {
     bool at = at_command(command, wait_for, timeout);
     delay(1000);
-    if (at) break;
+    if (at) return true;  // Success
+
+    attempts++;
+
+    // Add a check to see if we should abort for UDP handling
+    if (udpServer.parsePacket() > 0) {
+      // Process the UDP packet
+      int len = udpServer.read(incomingPacket, 255);
+      if (len > 0) {
+        incomingPacket[len] = 0;
+      }
+      // Update client IP and activity
+      clientIP = udpServer.remoteIP();
+      lastClientActivity = millis();
+
+      // Send a reply to the UDP client
+      udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+      udpServer.printf("Vehicle Tracker Status: Connected to A9 module");
+      udpServer.endPacket();
+    }
   }
+  return false; // Failed after max attempts
 }
 
 bool readGPS() {
@@ -331,7 +416,32 @@ void flush_softser() {
 void a9_softreset() {
   Serial.println("A9 Soft Reset...");
   at_command("AT+RST=1\r", _OK, 1000);
-  delay(15000);
+
+  // Instead of a long blocking delay, we'll break it into smaller chunks
+  // to allow for UDP communication during the reset period
+  unsigned long resetStartTime = millis();
+  const unsigned long resetTime = 15000; // 15 seconds reset time
+
+  while (millis() - resetStartTime < resetTime) {
+    // Process any pending UDP packets to maintain communication
+    if (udpServer.parsePacket() > 0) {
+      // Process the UDP packet
+      int len = udpServer.read(incomingPacket, 255);
+      if (len > 0) {
+        incomingPacket[len] = 0;
+      }
+      // Update client IP and activity
+      clientIP = udpServer.remoteIP();
+      lastClientActivity = millis();
+
+      // Send a reply to the UDP client
+      udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+      udpServer.printf("Vehicle Tracker Status: Connected to A9 module");
+      udpServer.endPacket();
+    }
+
+    delay(100); // Small delay to prevent tight looping
+  }
 }
 
 void log(String s) {
