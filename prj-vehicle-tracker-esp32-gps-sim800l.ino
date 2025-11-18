@@ -97,19 +97,43 @@ void publishMqtt() {
 }
 
 bool connectNetwork() {
-  delay(1000);
-  if (!at_command("AT+CGATT=1\r", _OK, 2500)) {
+  // Check network registration first
+  unsigned long ctime = millis();
+  bool registered = false;
+  while (millis() - ctime < 20000) { // Wait up to 20 seconds for registration
+    if (at_command("AT+CREG?\r", "+CREG: 0,1", 2000) ||
+        at_command("AT+CREG?\r", "+CREG: 0,5", 2000)) {
+      registered = true;
+      break;
+    }
+    delay(2000);
+  }
+  if (!registered) {
+    Serial.println("Not registered to network");
     return false;
   }
   delay(1000);
-  if (!at_command("AT+CGDCONT=1,\"IP\",\"www\"\r", _OK, 2500)) {
+
+  // Check GPRS attachment
+  if (!at_command("AT+CGATT=1\r", _OK, 5000)) {
+    return false;
+  }
+  delay(2000);
+
+  // Set the correct APN - Change this to match your carrier
+  // Common APNs: "internet", "wap", "fast.t-mobile.com", "tmus", etc.
+  if (!at_command("AT+CGDCONT=1,\"IP\",\"internet\"\r", _OK, 2500)) {
     return false;
   }
   delay(1000);
-  if (!at_command("AT+CGACT=1,1\r", _OK, 2500)) {
+
+  // Activate PDP context
+  if (!at_command("AT+CGACT=1,1\r", _OK, 10000)) { // Increased timeout
+    Serial.println("PDP Context activation failed - checking status:");
+    at_command("AT+CGACT?\r", _OK, 1000);  // Check current PDP status
     return false;
   }
-  delay(1000);
+  delay(2000);
   return true;
 }
 
@@ -163,6 +187,15 @@ bool at_command(String command, String wait_for, long timeout) {
       if (res.endsWith(wait_for)) {
         ret = true;
         at_resp = res;
+      }
+      // Also check for "OK" at the end regardless of the specific wait_for string
+      // This handles cases where responses contain the expected string followed by "OK"
+      if (res.endsWith(_OK)) {
+        // Check if our expected string is contained somewhere in the response
+        if (res.indexOf(wait_for) >= 0) {
+          ret = true;
+          at_resp = res;
+        }
       }
     }
   }
