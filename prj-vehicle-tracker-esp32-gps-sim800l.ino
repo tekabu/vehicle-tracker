@@ -101,8 +101,10 @@ bool connectNetwork() {
   unsigned long ctime = millis();
   bool registered = false;
   while (millis() - ctime < 20000) { // Wait up to 20 seconds for registration
-    if (at_command("AT+CREG?\r", "+CREG: 0,1", 2000) ||
-        at_command("AT+CREG?\r", "+CREG: 0,5", 2000)) {
+    if (at_command("AT+CREG?\r", "+CREG: 1,1", 2000) ||  // Registered to home network
+        at_command("AT+CREG?\r", "+CREG: 1,5", 2000) ||  // Registered, roaming
+        at_command("AT+CREG?\r", "+CREG: 0,1", 2000) ||  // Original check
+        at_command("AT+CREG?\r", "+CREG: 0,5", 2000)) {  // Original check
       registered = true;
       break;
     }
