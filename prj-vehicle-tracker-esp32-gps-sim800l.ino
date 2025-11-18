@@ -123,7 +123,7 @@ bool connectNetwork() {
   delay(2000);
 
   // Set the correct APN for Globe/TM Philippines
-  // Alternative: "http.globe.com.ph" for LTE devices
+  // Standard Globe APN: "internet.globe.com.ph"
   if (!at_command("AT+CGDCONT=1,\"IP\",\"internet.globe.com.ph\"\r", _OK, 2500)) {
     return false;
   }
