@@ -1,6 +1,8 @@
 #define DEVICE_ID "TRACKER0001"
 
 #include <SoftwareSerial.h>
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
 
 SoftwareSerial SoftSerial(D1, D2);
 
@@ -11,23 +13,123 @@ String clat, clng;
 unsigned long last_gps_time = 0;
 const unsigned long last_gps_interval = 5000;
 
+// Global variable to store signal strength
+String signalStrength = "N/A";
+
+// WiFi AP settings
+const char* ssid = "VehicleTracker_AP";
+const char* password = "123456789"; // At least 8 characters for WPA2
+
+WiFiServer server(80);
+WiFiUDP udpServer;
+
+// UDP port for status updates
+unsigned int localUdpPort = 8888;
+char incomingPacket[255];
+char udpReply[255];
+
 void setup() {
   Serial.begin(9600);
   SoftSerial.begin(9600);
+
+  // Start WiFi AP
+  WiFi.softAP(ssid, password);
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
+
+  // Start UDP server
+  udpServer.begin(localUdpPort);
+  Serial.print("UDP Server started at port: ");
+  Serial.println(localUdpPort);
+
   a9_softreset();
 }
 
+bool quickCheckGPS() {
+  // Send a quick GPS location command with short timeout to check if GPS is responding
+  return at_command("AT+LOCATION=2\r", _OK, 2000);
+}
+
+void sendStatusUpdate() {
+  // Check GPS status with short timeout to avoid blocking UDP
+  bool gpsActive = quickCheckGPS();
+  String gpsStatus = gpsActive ? "Active" : "Inactive";
+
+  // Get current location if available
+  String location = "N/A";
+  if (clat.length() > 0 && clng.length() > 0) {
+    location = clat + "," + clng;
+  }
+
+  // Create status message
+  String status = "DEVICE_ID:" + String(DEVICE_ID) +
+                  "|SIGNAL:" + signalStrength +
+                  "|GPS:" + gpsStatus +
+                  "|LOCATION:" + location +
+                  "|TIME:" + String(millis());
+
+  // Send UDP broadcast to all connected devices
+  IPAddress broadcastIP(255, 255, 255, 255);
+  udpServer.beginPacket(broadcastIP, localUdpPort);
+  udpServer.print(status);
+  udpServer.endPacket();
+}
+
+unsigned long lastStatusUpdate = 0;
+const unsigned long statusUpdateInterval = 5000; // Send status every 5 seconds
+
 void loop() {
+  // Handle incoming UDP packets
+  int packetSize = udpServer.parsePacket();
+  if (packetSize) {
+    // Read the packet into packetBufffer
+    int len = udpServer.read(incomingPacket, 255);
+    if (len > 0) {
+      incomingPacket[len] = 0;
+    }
+
+    // Send a reply, to the IP address and port that sent us the packet
+    udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
+    udpServer.printf("Vehicle Tracker Status: Connected to A9 module");
+    udpServer.endPacket();
+  }
+
+  // Send periodic status updates
+  if (millis() - lastStatusUpdate >= statusUpdateInterval) {
+    sendStatusUpdate();
+    lastStatusUpdate = millis();
+  }
+
   run();
 }
 
 void run() {
   checkAT();
-  if (!getSignal()) return;
-  if (!enableGPS()) return;
-  if (!checkGPS()) return;
-  if (!connectNetwork()) return;
-  if (connectMqtt()) publishMqtt();
+  sendStatusUpdate(); // Send status after checking AT command
+  if (!getSignal()) {
+    sendStatusUpdate(); // Send status showing signal failure
+    return;
+  }
+  if (!enableGPS()) {
+    sendStatusUpdate(); // Send status showing GPS enable failure
+    return;
+  }
+  if (!checkGPS()) {
+    sendStatusUpdate(); // Send status showing GPS check failure
+    return;
+  }
+  sendStatusUpdate(); // Send status showing GPS is working
+  if (!connectNetwork()) {
+    sendStatusUpdate(); // Send status showing network connection failure
+    return;
+  }
+  sendStatusUpdate(); // Send status showing network is connected
+  if (connectMqtt()) {
+    sendStatusUpdate(); // Send status showing MQTT connected
+    publishMqtt();
+    sendStatusUpdate(); // Send status showing MQTT published
+  }
   a9_softreset();
 }
 
@@ -37,6 +139,8 @@ void checkAT() {
 }
 
 bool checkGPS() {
+  // This function is used for the main operation sequence
+  // Try to get GPS data for up to 30 seconds as before
   unsigned long ctime = millis();
   bool at = false;
   while (1) {
@@ -51,6 +155,17 @@ bool checkGPS() {
 bool getSignal() {
   bool at = at_command("AT+CSQ\r", _OK, 1000);
   if (!at) return false;
+
+  // Extract signal strength from response
+  int signalStart = at_resp.indexOf("+CSQ:");
+  if (signalStart != -1) {
+    int signalEnd = at_resp.indexOf(',', signalStart);
+    if (signalEnd != -1) {
+      signalStrength = at_resp.substring(signalStart + 5, signalEnd);
+      signalStrength.trim();
+    }
+  }
+
   delay(1000);
   return true;
 }
