@@ -28,6 +28,11 @@ unsigned int localUdpPort = 8888;
 char incomingPacket[255];
 char udpReply[255];
 
+// Track connected client IP
+IPAddress clientIP(0, 0, 0, 0);
+unsigned long lastClientActivity = 0;
+const unsigned long CLIENT_TIMEOUT = 60000; // 1 minute timeout
+
 void setup() {
   Serial.begin(9600);
   SoftSerial.begin(9600);
@@ -52,6 +57,11 @@ bool quickCheckGPS() {
 }
 
 void sendStatusUpdate() {
+  // Only send if we have an active client
+  if (clientIP[0] == 0 && clientIP[1] == 0 && clientIP[2] == 0 && clientIP[3] == 0) {
+    return; // No client connected
+  }
+
   // Check GPS status with short timeout to avoid blocking UDP
   bool gpsActive = quickCheckGPS();
   String gpsStatus = gpsActive ? "Active" : "Inactive";
@@ -69,9 +79,8 @@ void sendStatusUpdate() {
                   "|LOCATION:" + location +
                   "|TIME:" + String(millis());
 
-  // Send UDP broadcast to all connected devices
-  IPAddress broadcastIP(255, 255, 255, 255);
-  udpServer.beginPacket(broadcastIP, localUdpPort);
+  // Send UDP to the connected client
+  udpServer.beginPacket(clientIP, localUdpPort);
   udpServer.print(status);
   udpServer.endPacket();
 }
@@ -89,19 +98,26 @@ void loop() {
       incomingPacket[len] = 0;
     }
 
+    // Update client IP when we receive a packet
+    clientIP = udpServer.remoteIP();
+    lastClientActivity = millis();
+
     // Send a reply, to the IP address and port that sent us the packet
     udpServer.beginPacket(udpServer.remoteIP(), udpServer.remotePort());
     udpServer.printf("Vehicle Tracker Status: Connected to A9 module");
     udpServer.endPacket();
   }
 
-  // Send periodic status updates
+  // Send periodic status updates only if client is active
   if (millis() - lastStatusUpdate >= statusUpdateInterval) {
-    sendStatusUpdate();
+    // Check if client is still active (within timeout period)
+    if (millis() - lastClientActivity <= CLIENT_TIMEOUT) {
+      sendStatusUpdate();
+    }
     lastStatusUpdate = millis();
   }
 
-  run();
+  // run();
 }
 
 void run() {
@@ -285,6 +301,18 @@ bool at_command(String command, String wait_for, long timeout) {
   Serial.print(command);
   Serial.print(": ");
   Serial.println(ret ? "success" : "failed");
+
+  // Send UDP status message if AT command fails
+  if (!ret) {
+    // Only send to client if we have an active client
+    if (!(clientIP[0] == 0 && clientIP[1] == 0 && clientIP[2] == 0 && clientIP[3] == 0)) {
+      String failMsg = "AT_FAILED:" + command + "|TIME:" + String(millis());
+      udpServer.beginPacket(clientIP, localUdpPort);
+      udpServer.print(failMsg);
+      udpServer.endPacket();
+    }
+  }
+
   log(res);
   flush_softser();
   return ret;
