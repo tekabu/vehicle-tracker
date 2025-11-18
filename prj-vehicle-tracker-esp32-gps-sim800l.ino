@@ -122,9 +122,9 @@ bool connectNetwork() {
   }
   delay(2000);
 
-  // Set the correct APN - Change this to match your carrier
-  // Common APNs: "internet", "wap", "fast.t-mobile.com", "tmus", etc.
-  if (!at_command("AT+CGDCONT=1,\"IP\",\"internet\"\r", _OK, 2500)) {
+  // Set the correct APN for Globe/TM Philippines
+  // Alternative: "http.globe.com.ph" for LTE devices
+  if (!at_command("AT+CGDCONT=1,\"IP\",\"internet.globe.com.ph\"\r", _OK, 2500)) {
     return false;
   }
   delay(1000);
